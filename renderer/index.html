@@ -34,7 +34,12 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html, body { height: 100%; }
+    /* Sin height fijo en html/body: con height:100% el elemento sticky
+       (.app-header) quedaba confinado al viewport y se despegaba al hacer
+       scroll (las pestañas desaparecían al bajar). Con altura natural el
+       sticky recorre todo el documento. */
+    html { min-height: 100%; }
+    body { min-height: 100vh; }
 
     body {
       font-family: "Segoe UI", "Roboto", system-ui, -apple-system, sans-serif;
