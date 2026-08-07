@@ -1,7 +1,7 @@
 {
   "name": "roblox-launcher",
   "productName": "Roblox Launcher",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "description": "Launcher de Roblox con pestañas: jugar, comprobar versión, abrir carpetas y más.",
   "main": "main.js",
   "author": "Tu nombre <tu@email.com>",
@@ -28,7 +28,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "artifactName": "Roblox-Launcher-Setup-${version}.${ext}"

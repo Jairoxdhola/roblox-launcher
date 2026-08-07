@@ -836,12 +836,11 @@
 
   <!-- ======= Cabecera fija (barra superior + pestañas) ======= -->
   <div class="app-header">
-  <header class="topbar">
-    <div class="brand">
+  <header class="topbar">      <div class="brand">
       <div class="logo" aria-hidden="true">R</div>
       <div class="brand-text">
         <h1>Roblox <span>Launcher</span></h1>
-        <p>Tu centro de control</p>
+        <p>Tu centro de control · <span id="brandVersion">v1.0.2</span></p>
       </div>
     </div>
     <div class="topbar-right">
@@ -2077,40 +2076,55 @@
       const action = $('#updateActionBtn');
       const wrap = $('#updateProgressWrap');
       const bar = $('#updateProgressBar');
-      if (!appUpdateStatus || appUpdateStatus.stage === 'uptodate' || appUpdateStatus.stage === 'error' || appUpdateStatus.stage === 'checking') {
+      if (!appUpdateStatus || appUpdateStatus.stage === 'uptodate' || appUpdateStatus.stage === 'checking') {
         banner.hidden = true;
         return;
       }
       banner.hidden = false;
-      wrap.hidden = appUpdateStatus.stage !== 'downloading';
+
       if (appUpdateStatus.stage === 'available') {
-        text.textContent = `Hay una nueva versión de Roblox Launcher (v${appUpdateStatus.version}).`;
-        action.textContent = 'Actualizar ahora';
-        action.disabled = false;
-        action.onclick = async () => {
-          action.disabled = true;
-          action.textContent = 'Descargando…';
-          const res = await safe(() => API.appUpdate.download());
-          if (!res || !res.ok) {
-            // Si la descarga no llegó a empezar (sin red, canal sin configurar),
-            // se vuelve a dejar el botón listo para reintentar.
-            action.disabled = false;
-            action.textContent = 'Actualizar ahora';
-          }
-        };
+        // Con autoDownload, al llegar aquí la descarga YA está en marcha sola;
+        // el progreso lo pintan los eventos 'downloading' que vienen detrás.
+        wrap.hidden = true;
+        text.textContent = `Hay una nueva versión de Roblox Launcher (v${appUpdateStatus.version}). Descargando…`;
+        action.textContent = 'Descargando…';
+        action.disabled = true;
       } else if (appUpdateStatus.stage === 'downloading') {
+        wrap.hidden = false;
         bar.style.width = `${appUpdateStatus.percent || 0}%`;
         text.textContent = `Descargando la actualización… ${appUpdateStatus.percent || 0}%`;
         action.textContent = 'Descargando…';
         action.disabled = true;
       } else if (appUpdateStatus.stage === 'downloaded') {
+        wrap.hidden = true;
         text.textContent = 'Actualización lista. Se instalará y la app se reiniciará sola.';
         action.textContent = 'Reiniciar e instalar';
         action.disabled = false;
         action.onclick = async () => {
           action.disabled = true;
           action.textContent = 'Reiniciando…';
-          await safe(() => API.appUpdate.install());
+          const res = await safe(() => API.appUpdate.install());
+          // Si el proceso principal responde con un error (p. ej. la
+          // descarga no se completó), lo mostramos y restauramos el botón
+          // en vez de quedarnos en "Reiniciando…" para siempre.
+          if (res && !res.ok && !IS_DEMO) {
+            text.textContent = 'No se pudo instalar: ' + (res.reason || res.error || 'error desconocido');
+            action.textContent = 'Reintentar';
+            action.disabled = false;
+          }
+        };
+      } else if (appUpdateStatus.stage === 'error') {
+        // Los errores se muestran, nunca se ocultan en silencio.
+        wrap.hidden = true;
+        text.textContent = `No se pudo actualizar: ${appUpdateStatus.message || 'error desconocido'}`;
+        action.textContent = 'Reintentar';
+        action.disabled = false;
+        action.onclick = async () => {
+          action.disabled = true;
+          action.textContent = 'Comprobando…';
+          const res = await safe(() => API.appUpdate.check());
+          action.disabled = false;
+          action.textContent = 'Reintentar';
         };
       }
     }
@@ -2128,18 +2142,31 @@
         toast('info', 'Comprobando actualizaciones…');
       });
       if (upd.onStatus) {
+        let manualCheck = false;
         upd.onStatus((data) => {
           appUpdateStatus = data;
           renderAppUpdateBanner();
+          // Los toasts de "al día" solo salen cuando el usuario lo pide
+          // (botón Comprobar), no en la comprobación automática del arranque.
           if (data.stage === 'downloaded') toast('ok', 'Actualización lista. La app se reiniciará sola.');
-          else if (data.stage === 'uptodate') toast('info', 'Estás al día con la última versión.');
-          else if (data.stage === 'error') toast('error', 'No se pudo comprobar la actualización: ' + (data.message || 'sin conexión'));
+          else if (data.stage === 'uptodate' && manualCheck) toast('info', 'Estás al día con la última versión.');
+          else if (data.stage === 'error') toast('error', 'Error de actualización: ' + (data.message || 'sin conexión'));
+          manualCheck = false;
         });
+        // Marca la próxima respuesta como comprobación manual (desde Ajustes).
+        const btn = $('#checkAppUpdateBtn');
+        if (btn) {
+          btn.addEventListener('click', () => { manualCheck = true; });
+        }
       }
-      // Versión actual de la app en el pie.
+      // Versión actual de la app en el pie y en "Acerca de".
       if (upd.currentVersion) {
         upd.currentVersion().then((v) => {
-          if (v && v.version && !IS_DEMO) $('#aboutText').textContent = `Roblox Launcher v${v.version} · Hecho con Electron`;
+          if (v && v.version && !IS_DEMO) {
+            $('#aboutText').textContent = `Roblox Launcher v${v.version} · Hecho con Electron`;
+            $('#footMode').textContent = `v${v.version}`;
+            $('#brandVersion').textContent = `v${v.version}`;
+          }
         }).catch(() => {});
       }
     }

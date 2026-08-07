@@ -867,34 +867,65 @@ function isPublishConfigured() {
   }
 }
 
+// Escribe los eventos del updater en un archivo (userData/updater.log) para
+// poder depurar qué pasó si algo falla, aunque la app esté empaquetada.
+function logUpdater(line) {
+  try {
+    fs.appendFileSync(path.join(app.getPath('userData'), 'updater.log'),
+      `[${new Date().toISOString()}] ${line}\n`);
+  } catch { /* no importa */ }
+}
+
 function setupAutoUpdater() {
   // En desarrollo (npm start) no hay canal de actualizaciones: se omite.
   if (!app.isPackaged) return;
 
-  autoUpdater.autoDownload = false; // el usuario decide cuándo descargar
+  // Como las apps de Windows: al detectar la versión nueva, la descarga
+  // empieza sola en segundo plano y el banner muestra el progreso. Sin
+  // descarga diferencial (blockmap), que falla a menudo con instaladores
+  // sin firmar: se baja el .exe completo, mucho más fiable.
+  autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.disableDifferentialDownload = true;
 
   autoUpdater.on('checking-for-update', () => {
+    logUpdater('comprobando actualizaciones…');
     sendToRenderer('app:update-status', { stage: 'checking' });
   });
   autoUpdater.on('update-available', (info) => {
+    logUpdater(`versión nueva disponible: ${info.version} — descarga automática en marcha`);
+    console.log('[updater] versión nueva disponible:', info.version);
     sendToRenderer('app:update-status', { stage: 'available', version: info.version });
   });
   autoUpdater.on('update-not-available', () => {
+    logUpdater('ya estás al día');
+    console.log('[updater] ya estás al día');
     sendToRenderer('app:update-status', { stage: 'uptodate' });
   });
   autoUpdater.on('download-progress', (p) => {
+    const percent = Math.round(p.percent || 0);
+    if (percent % 10 === 0 || percent === 1) {
+      logUpdater(`descargando… ${percent}%`);
+    }
     sendToRenderer('app:update-status', {
       stage: 'downloading',
-      percent: Math.round(p.percent || 0),
+      percent,
       speed: p.bytesPerSecond || 0,
     });
   });
   autoUpdater.on('update-downloaded', (info) => {
+    logUpdater(`descarga completa, lista para instalar: ${info.version}`);
+    console.log('[updater] descarga completa, lista para instalar:', info.version);
     sendToRenderer('app:update-status', { stage: 'downloaded', version: info.version });
   });
   autoUpdater.on('error', (err) => {
-    sendToRenderer('app:update-status', { stage: 'error', message: err && err.message ? err.message : 'desconocido' });
+    const msg = err && err.message ? err.message : 'desconocido';
+    logUpdater(`ERROR: ${msg}`);
+    console.error('[updater] error:', msg);
+    sendToRenderer('app:update-status', { stage: 'error', message: msg });
+  });
+  autoUpdater.on('before-quit-for-update', () => {
+    logUpdater('la app se cierra para instalar la actualización…');
   });
 }
 
@@ -1013,18 +1044,37 @@ ipcMain.handle('app:update-check', async () => {
 });
 ipcMain.handle('app:update-download', async () => {
   if (!app.isPackaged) return { ok: false, dev: true };
-  try {
-    await autoUpdater.downloadUpdate();
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: e && e.message ? e.message : 'desconocido' };
-  }
+  // No esperamos a que termine la descarga (podría tardar minutos): la
+  // lanzamos en segundo plano y los eventos de progreso/error van solos
+  // al renderer. Así el botón nunca se queda colgado.
+  autoUpdater.downloadUpdate().catch((e) => {
+    logUpdater(`descarga manual falló: ${e && e.message ? e.message : 'desconocido'}`);
+  });
+  return { ok: true, started: true };
 });
 ipcMain.handle('app:update-install', () => {
   if (!app.isPackaged) return { ok: false, dev: true };
-  // Cierra la app, instala en silencio y la vuelve a abrir sola.
-  autoUpdater.quitAndInstall(true, true);
-  return { ok: true };
+  logUpdater('usuario pulsa Reiniciar e instalar → quitAndInstall');
+  // Cierra la app, instala y la vuelve a abrir sola. isSilent=false: el
+  // instalador NSIS muestra su ventana de progreso y SIEMPRE relanza la app
+  // al terminar (en modo silencioso /S el relanzamiento fallaba).
+  try {
+    // Verifica que la actualización esté realmente descargada antes de
+    // intentar instalarla. Si no lo está, avisamos en vez de quedarnos
+    // en silencio ("no pasa nada").
+    const helper = autoUpdater.downloadedUpdateHelper;
+    const ready = !!autoUpdater.installerPath && !!(helper && helper.downloadedFileInfo);
+    if (!ready) {
+      logUpdater('ERROR: no hay actualización descargada lista para instalar');
+      return { ok: false, reason: 'no-update-downloaded' };
+    }
+    autoUpdater.quitAndInstall(false, true);
+    return { ok: true, quitting: true };
+  } catch (e) {
+    const msg = e && e.message ? e.message : 'desconocido';
+    logUpdater(`ERROR quitAndInstall: ${msg}`);
+    return { ok: false, reason: 'quit-failed', error: msg };
+  }
 });
 
 // ---- Modo instalación por CLI -------------------------------------------------------
