@@ -189,6 +189,119 @@ async function checkVersion() {
 
 // ---- Lanzamiento -------------------------------------------------------------
 
+// Preferencia multi-instancia (persistida en userData/settings.json). El cliente
+// de Roblox usa un mutex global (ROBLOX_singletonMutex + ROBLOX_singletonEvent)
+// que impide abrir más de un cliente. Con permisos de administrador, handle.exe
+// puede cerrar esos handles en el proceso que ya está corriendo y así liberar el
+// candado. Esto permite abrir varias ventanas con cuentas distintas.
+let multiInstanceEnabled = false;
+
+function loadAppSettings() {
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'settings.json'), 'utf8'));
+    multiInstanceEnabled = !!data.multiInstance;
+  } catch { /* valores por defecto */ }
+}
+
+async function setMultiInstance(enabled) {
+  multiInstanceEnabled = !!enabled;
+  try {
+    const file = path.join(app.getPath('userData'), 'settings.json');
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { /* no existe aún */ }
+    data.multiInstance = multiInstanceEnabled;
+    await fs.promises.writeFile(file, JSON.stringify(data, null, 2));
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+  return { ok: true, multiInstance: multiInstanceEnabled };
+}
+
+// Ruta de handle64.exe (Sysinternals) que cierra los handles del singleton.
+// Dentro del asar empaquetado no se puede ejecutar directamente desde el archivo
+// virtual; se extrae una copia al directorio temporal la primera vez.
+let handleExeResolved = null;
+
+function handleExePath() {
+  if (handleExeResolved) return handleExeResolved;
+  const inAsar = path.join(__dirname, 'handle64.exe');
+  const insideAsar = inAsar.indexOf('app.asar') !== -1;
+  if (fs.existsSync(inAsar) && !insideAsar) {
+    // En desarrollo el archivo está directamente en el proyecto.
+    handleExeResolved = inAsar;
+    return handleExeResolved;
+  }
+  // Empaquetado: extrae handle64.exe del asar al directorio temporal.
+  const dest = path.join(app.getPath('temp'), 'roblox-launcher-handle64.exe');
+  try {
+    if (!fs.existsSync(dest)) {
+      fs.copyFileSync(inAsar, dest);
+    }
+    handleExeResolved = dest;
+  } catch {
+    handleExeResolved = inAsar;
+  }
+  return handleExeResolved;
+}
+
+// Cierra los handles ROBLOX_singletonMutex y ROBLOX_singletonEvent de todas las
+// instancias de RobloxPlayerBeta que estén corriendo. Devuelve cuántos cerró.
+function freeRobloxSingleton() {
+  return new Promise((resolve) => {
+    const handleExe = handleExePath();
+    if (!fs.existsSync(handleExe)) { resolve(0); return; }
+    execFile('tasklist.exe', ['/FI', 'IMAGENAME eq RobloxPlayerBeta.exe', '/FO', 'CSV', '/NH'], {
+      windowsHide: true,
+      timeout: 8000,
+      maxBuffer: 2 * 1024 * 1024,
+    }, (err, stdout) => {
+      if (err) { resolve(0); return; }
+      // Extrae los PIDs de las líneas CSV: "RobloxPlayerBeta.exe","<pid>",...
+      const pids = [];
+      String(stdout).split(/\r?\n/).forEach((line) => {
+        const m = line.match(/"RobloxPlayerBeta\.exe","(\d+)"/);
+        if (m) pids.push(m[1]);
+      });
+      if (!pids.length) { resolve(0); return; }
+      let done = 0;
+      let closed = 0;
+      const next = () => {
+        if (done >= pids.length) { resolve(closed); return; }
+        const pid = pids[done++];
+        // 1) Lista los handles ROBLOX_singleton del proceso
+        execFile(handleExe, ['-accepteula', '-a', '-nobanner', '-p', pid], {
+          windowsHide: true,
+          timeout: 15000,
+          maxBuffer: 4 * 1024 * 1024,
+        }, (e2, out2) => {
+          const lines = String(out2).split(/\r?\n/);
+          const targets = [];
+          lines.forEach((line) => {
+            if (line.indexOf('ROBLOX_singleton') >= 0) {
+              const m = line.match(/^\s*([0-9A-Fa-f]+):/);
+              if (m) targets.push(m[1]);
+            }
+          });
+          let cDone = 0;
+          const closeNext = () => {
+            if (cDone >= targets.length) { next(); return; }
+            const h = targets[cDone++];
+            execFile(handleExe, ['-accepteula', '-nobanner', '-c', h, '-p', pid, '-y'], {
+              windowsHide: true,
+              timeout: 15000,
+            }, (e3, out3) => {
+              if (out3 && out3.indexOf('Handle closed') >= 0) closed++;
+              closeNext();
+            });
+          };
+          closeNext();
+        });
+      };
+      next();
+    });
+  });
+}
+
 async function resolvePlayerExe() {
   const info = await getInstalledVersion();
   return info ? info.exe : null;
@@ -219,11 +332,13 @@ async function launchClient() {
     await shell.openExternal('https://www.roblox.com/download');
     return { ok: false, launched: false, reason: 'not-installed' };
   }
-  // Nota: el cliente de Roblox NO permite varias instancias abiertas a la vez
-  // (al abrir una segunda, la primera se cierra). Por eso siempre se lanza el
-  // exe normal: no existe forma fiable de forzar multi-instancia.
+  // En modo multi-instancia: libera el mutex/event del singleton de las
+  // instancias ya abiertas para poder lanzar una nueva (requiere admin).
+  if (multiInstanceEnabled) {
+    await freeRobloxSingleton();
+  }
   await spawnPlayer(exe, []);
-  return { ok: true, launched: true };
+  return { ok: true, launched: true, multiInstance: multiInstanceEnabled };
 }
 
 // Lanza el cliente de UNA carpeta concreta de Versions (para elegir versión).
@@ -254,6 +369,13 @@ async function playGame(rawPlaceId) {
   if (!exe) {
     await shell.openExternal(webUrl); // el navegador dispara el protocolo de Roblox
     return { ok: false, launched: false, reason: 'not-installed' };
+  }
+  // En modo multi-instancia: libera el singleton de las instancias abiertas y
+  // lanza un proceso nuevo que abre ese juego (cuenta distinta por ventana).
+  if (multiInstanceEnabled) {
+    await freeRobloxSingleton();
+    await spawnPlayer(exe, [`${webUrl}`]);
+    return { ok: true, launched: true, placeId, multiInstance: true };
   }
   // RobloxPlayerBeta.exe NO acepta URLs web como argumento. El método fiable
   // es el protocolo roblox://, que lanza el juego directamente en el cliente
@@ -1175,6 +1297,8 @@ ipcMain.handle('window:toggle-maximize', () => {
 });
 ipcMain.handle('window:close', () => { if (mainWindow) mainWindow.close(); });
 ipcMain.handle('window:is-maximized', () => (mainWindow ? mainWindow.isMaximized() : false));
+ipcMain.handle('multi-instance:get', () => ({ ok: true, multiInstance: multiInstanceEnabled }));
+ipcMain.handle('multi-instance:set', (_e, enabled) => setMultiInstance(enabled));
 ipcMain.handle('close:roblox', () => closeRoblox());
 ipcMain.handle('is:roblox-running', () => isProcessRunning('RobloxPlayerBeta.exe'));
 ipcMain.handle('update:roblox', () => updateRoblox());
@@ -1376,6 +1500,7 @@ if (!gotLock) {
   app.whenReady().then(() => {
     // En modo CLI no se abre ventana (solo se instala/activa/protege/actualiza).
     if (INSTALL_CLI || ACTIVATE_CLI || PROTECT_CLI || UPDATE_CLI) return;
+    loadAppSettings();
     app.setAppUserModelId(APP_ID);
     // Sin barra de menú (File/Edit/…) en la ventana.
     Menu.setApplicationMenu(null);

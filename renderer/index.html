@@ -1190,6 +1190,13 @@
           <h3>Historial de juegos</h3>
           <button class="btn btn--danger" id="clearHistoryBtn">Borrar historial</button>
         </div>
+        <div class="settings-row">
+          <h3>Multi-instancia</h3>
+          <label class="switch">
+            <input type="checkbox" id="multiInstanceToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
 
       <div class="card">
@@ -1286,6 +1293,9 @@
       async openVersionsFolder() { return true; },
       async openRobloxFolder() { return true; },
       async isRobloxRunning() { return true; },
+      _demoMultiInstance: false,
+      async getMultiInstance() { return { ok: true, multiInstance: this._demoMultiInstance, _demo: true }; },
+      async setMultiInstance(enabled) { this._demoMultiInstance = !!enabled; return { ok: true, multiInstance: !!enabled, _demo: true }; },
       async closeRoblox() {
         await sleep(600);
         return { ok: true, wasRunning: true, _demo: true };
@@ -2303,6 +2313,24 @@
         settings.toasts = e.target.checked;
         saveSettings();
         if (settings.toasts) toast('info', 'Notificaciones activadas.');
+      });
+
+      // Multi-instancia: guarda la preferencia en el proceso principal.
+      const miToggle = $('#multiInstanceToggle');
+      const syncMultiInstance = async () => {
+        const res = await safe(() => API.getMultiInstance());
+        if (res && res.ok) miToggle.checked = !!res.multiInstance;
+      };
+      syncMultiInstance();
+      miToggle.addEventListener('change', async (e) => {
+        const on = e.target.checked;
+        const res = await safe(() => API.setMultiInstance(on));
+        if (res && res.ok) {
+          toast('info', on ? 'Multi-instancia activada. Abre el launcher como administrador para que funcione.' : 'Multi-instancia desactivada.');
+        } else {
+          miToggle.checked = !on;
+          toast('error', 'No se pudo cambiar el modo multi-instancia.');
+        }
       });
     }
 
