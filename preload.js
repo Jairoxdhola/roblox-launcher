@@ -38,6 +38,11 @@ contextBridge.exposeInMainWorld('robloxAPI', {
   onVersionInstallProgress: (callback) => {
     ipcRenderer.on('version:install-progress', (_event, data) => callback(data));
   },
+  // MAC Spoofer (terminal elevada)
+  spoofer: {
+    launch: () => ipcRenderer.invoke('spoofer:launch'),
+    status: () => ipcRenderer.invoke('spoofer:status'),
+  },
   // FastFlags (optimización del cliente)
   fastFlags: {
     get: () => ipcRenderer.invoke('fastflags:get'),

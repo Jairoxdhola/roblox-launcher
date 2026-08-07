@@ -217,6 +217,65 @@ async function setMultiInstance(enabled) {
   return { ok: true, multiInstance: multiInstanceEnabled };
 }
 
+// ---- MAC Spoofer --------------------------------------------------------------
+// El launcher incluye el script mac_spoofer.py en spoofer/ y lo abre en una
+// terminal elevada (UAC). Igual que handle64.exe, dentro del asar empaquetado el
+// archivo no puede ejecutarse desde el archivo virtual, así que se extrae una
+// copia al directorio temporal la primera vez.
+
+let spooferPyResolved = null;
+
+function spooferPyPath() {
+  if (spooferPyResolved) return spooferPyResolved;
+  const inAsar = path.join(__dirname, 'spoofer', 'mac_spoofer.py');
+  const insideAsar = inAsar.indexOf('app.asar') !== -1;
+  if (fs.existsSync(inAsar) && !insideAsar) {
+    // En desarrollo el archivo está directamente en el proyecto.
+    spooferPyResolved = inAsar;
+    return spooferPyResolved;
+  }
+  // Empaquetado: extrae mac_spoofer.py del asar al directorio temporal.
+  const dest = path.join(app.getPath('temp'), 'roblox-launcher-spoofer', 'mac_spoofer.py');
+  try {
+    if (!fs.existsSync(dest) || fs.statSync(dest).size !== fs.statSync(inAsar).size) {
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.writeFileSync(dest, fs.readFileSync(inAsar));
+    }
+    spooferPyResolved = dest;
+  } catch {
+    spooferPyResolved = inAsar;
+  }
+  return spooferPyResolved;
+}
+
+// Abre el spoofer en una ventana cmd elevada (dispara el prompt de UAC).
+// El comando intenta `python` y, si no existe, cae a `py`. Con /k la ventana
+// se queda abierta al salir del menú para poder leer el resultado.
+function launchSpoofer() {
+  return new Promise((resolve) => {
+    const py = spooferPyPath();
+    if (!py || !fs.existsSync(py)) return resolve({ ok: false, reason: 'not-found' });
+    const dir = path.dirname(py);
+    const esc = (s) => String(s).replace(/'/g, "''");
+    const runCmd = `python "${esc(py).replace(/"/g, '\\"')}" || py "${esc(py).replace(/"/g, '\\"')}"`;
+    const ps = [
+      "Start-Process -FilePath 'cmd.exe'",
+      `-ArgumentList '/k', '${esc(runCmd)}'`,
+      `-WorkingDirectory '${esc(dir)}'`,
+      '-Verb RunAs',
+    ].join(' ');
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', ps], {
+      windowsHide: true,
+      timeout: 20000,
+    }, (err) => {
+      // Si el usuario cancela el UAC, Start-Process devuelve error; es una
+      // elección del usuario, no un fallo de la app.
+      if (err) return resolve({ ok: false, reason: err.message, canceled: /cancel/i.test(err.message) });
+      resolve({ ok: true, started: true });
+    });
+  });
+}
+
 // Ruta de handle64.exe (Sysinternals) que cierra los handles del singleton.
 // Dentro del asar empaquetado no se puede ejecutar directamente desde el archivo
 // virtual; se extrae una copia al directorio temporal la primera vez.
@@ -1305,6 +1364,11 @@ ipcMain.handle('multi-instance:get', () => ({ ok: true, multiInstance: multiInst
 ipcMain.handle('multi-instance:set', (_e, enabled) => setMultiInstance(enabled));
 ipcMain.handle('close:roblox', () => closeRoblox());
 ipcMain.handle('is:roblox-running', () => isProcessRunning('RobloxPlayerBeta.exe'));
+ipcMain.handle('spoofer:launch', () => launchSpoofer());
+ipcMain.handle('spoofer:status', () => {
+  const py = spooferPyPath();
+  return { ok: true, available: !!py && fs.existsSync(py) };
+});
 ipcMain.handle('update:roblox', () => updateRoblox());
 ipcMain.handle('open:external', (_event, url) => {
   const target = String(url || '');

@@ -408,6 +408,22 @@
 
     .game-list { display: grid; gap: 10px; }
 
+    .spoofer-list {
+      margin: 10px 0 4px;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+    .spoofer-list li {
+      padding: 10px 14px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14.5px;
+      line-height: 1.5;
+    }
+
     .game-item {
       display: flex;
       align-items: center;
@@ -932,6 +948,7 @@
     <button class="tab" data-tab="version" role="tab" aria-selected="false">Versión</button>
     <button class="tab" data-tab="downgrade" role="tab" aria-selected="false">Downgrade</button>
     <button class="tab" data-tab="fastflags" role="tab" aria-selected="false">FastFlags</button>
+    <button class="tab" data-tab="spoofer" role="tab" aria-selected="false">Spoofer</button>
     <button class="tab" data-tab="settings" role="tab" aria-selected="false">Ajustes</button>
   </nav>
   </div>
@@ -1163,6 +1180,43 @@
       </div>
     </section>
 
+    <!-- ======= Pestaña: Spoofer ======= -->
+    <section id="panel-spoofer" class="panel" data-panel="spoofer">
+      <div class="hero-card">
+        <div class="hero-info">
+          <h2>MAC Address Spoofer</h2>
+          <p id="spooferSub">Abre la herramienta de MAC Spoofer en una terminal de Windows con permisos de administrador.</p>
+          <div class="hero-actions">
+            <button id="spooferLaunchBtn" class="btn btn--primary btn--big">
+              <span class="btn-shine" aria-hidden="true"></span>&#128274;&nbsp; Abrir MAC Spoofer
+            </button>
+          </div>
+          <p id="spooferStatus" class="muted tiny launch-line">Comprobando la herramienta…</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-logo">&#128272;</div>
+          <div class="hero-block b1"></div>
+          <div class="hero-block b2"></div>
+          <div class="hero-block b3"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Qué hace</h3>
+        <ul class="spoofer-list">
+          <li>&#128272; Ver, aleatorizar y <strong>cambiar la MAC</strong> de tus adaptadores de red.</li>
+          <li>&#128270; Detección automática del fabricante de cada adaptador.</li>
+          <li>&#128260; Restaurar la MAC original, <strong>flushear DNS</strong> y renovar IP.</li>
+          <li>&#127919; Limpieza de <strong>DeviceID de Roblox</strong>, MachineGUID y cookies.</li>
+        </ul>
+      </div>
+
+      <div class="card about-card">
+        <h3>Aviso</h3>
+        <p class="muted">Al abrir la herramienta, Windows pedirá <strong>permisos de administrador (UAC)</strong>. Acepta el aviso para que el spoofer pueda modificar los adaptadores de red. Necesita tener <strong>Python</strong> instalado en el equipo.</p>
+      </div>
+    </section>
+
     <!-- ======= Pestaña: Ajustes ======= -->
     <section id="panel-settings" class="panel" data-panel="settings">
       <div class="card">
@@ -1371,6 +1425,14 @@
           this._demoFastFlags = {};
           return { ok: true, folder: 'version-d584fb6c717a43d9', flags: {}, _demo: true };
         },
+      },
+      // ---- MAC Spoofer (demo: no abre terminal) ----
+      spoofer: {
+        launch: async () => {
+          await sleep(600);
+          return { ok: true, started: true, _demo: true };
+        },
+        status: async () => ({ ok: true, available: true, _demo: true }),
       },
       // ---- Auto-actualización de la app (demo: simula el flujo) ----
       appUpdate: {
@@ -2434,9 +2496,48 @@
       }
     }
 
-    function init() {
+    // ---- MAC Spoofer ----
+
+    async function refreshSpooferStatus() {
+      const res = await safe(() => API.spoofer.status());
+      const el = $('#spooferStatus');
+      const btn = $('#spooferLaunchBtn');
       if (IS_DEMO) {
-        $('#demoBanner').hidden = false;
+        el.textContent = '(Demo) El spoofer se abriría en una terminal elevada.';
+        return;
+      }
+      if (res === null || !res.ok) {
+        el.textContent = 'No se pudo comprobar la herramienta.';
+        return;
+      }
+      if (res.available) {
+        el.textContent = 'Listo para abrir. Pedirá permisos de administrador (UAC).';
+        btn.disabled = false;
+      } else {
+        el.textContent = 'mac_spoofer.py no se encontró. Reinstala el launcher.';
+        btn.disabled = true;
+      }
+    }
+
+    async function launchSpooferTool() {
+      const btn = $('#spooferLaunchBtn');
+      btn.disabled = true;
+      btn.innerHTML = '🔒&nbsp; Abriendo…';
+      const res = await safe(() => API.spoofer.launch());
+      btn.innerHTML = '🔒&nbsp; Abrir MAC Spoofer';
+      btn.disabled = false;
+      if (res === null) return;
+      if (IS_DEMO || res.ok) {
+        toast('ok', IS_DEMO ? '(Demo) Se abriría la terminal del spoofer.' : 'Terminal del spoofer abierta.');
+      } else if (res.canceled) {
+        toast('info', 'Aviso de administrador cancelado.');
+      } else {
+        toast('warn', 'No se pudo abrir el spoofer: ' + (res.reason || 'error desconocido'));
+      }
+    }
+
+    function init() {
+      if (IS_DEMO) {        $('#demoBanner').hidden = false;
         $('#footMode').textContent = 'Modo demo · usa "npm start" para la app completa';
       } else {
         // Sin texto en el pie: la barra inferior queda limpia.
@@ -2525,6 +2626,10 @@
       $('#ffApplyBtn').addEventListener('click', applyFastFlags);
       $('#ffClearBtn').addEventListener('click', clearFastFlags);
       refreshFastFlags();
+
+      // ---- Pestaña Spoofer ----
+      refreshSpooferStatus();
+      $('#spooferLaunchBtn').addEventListener('click', launchSpooferTool);
 
       // ---- Auto-actualización de la app ----
       bindAppUpdates();

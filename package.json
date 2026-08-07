@@ -20,6 +20,7 @@
       "preload.js",
       "handle64.exe",
       "renderer/**/*",
+      "spoofer/**/*",
       "package.json"
     ],
     "directories": {

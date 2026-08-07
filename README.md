@@ -10,6 +10,7 @@ Un launcher de escritorio para Roblox, hecho con **Electron**, con todo organiza
 | **Jugar** | Lanza cualquier juego pegando su ID, juegos populares con un clic, historial y botón para **cerrar Roblox**. |
 | **Versión** | Comprueba si tienes la **última versión oficial** (API de Roblox) frente a la que tienes instalada, abre la carpeta de versiones y actualiza con un clic. |
 | **Downgrade** | **Descargar e instalar** cualquier versión pasada desde el CDN oficial, **respaldos**, **restaurar/activar** versiones y **protección anti-actualización**. |
+| **Spoofer** | Abre el **MAC Address Spoofer** (incluido en la app) en una terminal de Windows elevada (UAC): ver/cambiar la MAC, restaurar, flushear DNS, limpiar el DeviceID de Roblox, etc. |
 | **Ajustes** | Comprobación automática al iniciar, notificaciones y gestión del historial. |
 
 ## Cómo ejecutarlo
