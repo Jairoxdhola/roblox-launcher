@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:;" />
+  <title>Roblox Launcher</title>
+  <style>
+    /* ============================================================
+       Roblox Launcher — estilos
+       Tema oscuro con acento rojo Roblox
+       ============================================================ */
+
+    :root {
+      --bg: #0b0d12;
+      --bg-soft: #10131b;
+      --card: #151a26;
+      --card-2: #1b2130;
+      --border: rgba(255, 255, 255, 0.07);
+      --border-strong: rgba(255, 255, 255, 0.12);
+      --text: #eef0f6;
+      --muted: #8b93a7;
+      --accent: #e2231a;
+      --accent-2: #ff5a3c;
+      --green: #2ecc71;
+      --amber: #f5b50a;
+      --blue: #3d8bff;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: "Segoe UI", "Roboto", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      /* clip (no hidden): evita el desborde horizontal SIN romper position: sticky */
+      overflow-x: clip;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- Fondo decorativo ---- */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(600px 400px at 85% -10%, rgba(226, 35, 26, 0.16), transparent 60%),
+        radial-gradient(500px 400px at -10% 110%, rgba(61, 139, 255, 0.08), transparent 60%);
+      z-index: 0;
+    }
+
+    /* ======= Barra superior ======= */
+    /* Cabecera completa (barra superior + pestañas) pegada arriba.
+       Fondo sólido, sin backdrop-filter: evita artefactos blancos al hacer scroll. */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--bg);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 26px;
+      color: #fff;
+      background: linear-gradient(135deg, #ff3b2f, #c41a12);
+      box-shadow: 0 6px 18px rgba(226, 35, 26, 0.45);
+      user-select: none;
+    }
+
+    .brand-text h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.2px; white-space: nowrap; }
+    .brand-text h1 span { color: var(--accent-2); }
+    .brand-text p { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      transition: all 0.25s ease;
+    }
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 0 0 rgba(139, 147, 167, 0.4);
+    }
+    .pill--ok        { color: var(--green); border-color: rgba(46, 204, 113, 0.35); }
+    .pill--ok .pill-dot { background: var(--green); animation: pulse 2s infinite; }
+    .pill--outdated  { color: var(--accent-2); border-color: rgba(255, 90, 60, 0.4); }
+    .pill--outdated .pill-dot { background: var(--accent-2); animation: pulse 1.4s infinite; }
+    .pill--missing   { color: var(--amber); border-color: rgba(245, 181, 10, 0.4); }
+    .pill--missing .pill-dot { background: var(--amber); animation: pulse 1.4s infinite; }
+    .pill--checking  { color: var(--blue); border-color: rgba(61, 139, 255, 0.4); }
+    .pill--checking .pill-dot { background: var(--blue); animation: pulse 0.8s infinite; }
+    .pill--unknown   { color: var(--muted); }
+    .pill--downgrade  { color: #7aa7ff; border-color: rgba(61, 139, 255, 0.45); }
+    .pill--downgrade .pill-dot { background: var(--blue); animation: pulse 1.6s infinite; }
+
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.45); }
+      70%  { box-shadow: 0 0 0 7px rgba(255, 255, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 17px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { background: var(--card-2); border-color: var(--border-strong); transform: translateY(-1px); }
+    .icon-btn:active { transform: translateY(0) scale(0.96); }
+
+    /* ---- Controles de ventana (marco oculto, animaciones nativas conservadas) ---- */
+    /* La barra superior arrastra la ventana; los botones no. */
+    .topbar { -webkit-app-region: drag; }
+    .topbar button, .topbar input, .topbar .pill { -webkit-app-region: no-drag; }
+
+    .win-controls {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 2px;
+      margin-left: 8px;
+      padding-left: 10px;
+      border-left: 1px solid var(--border);
+    }
+    .win-btn {
+      width: 40px;
+      height: 32px;
+      flex: 0 0 auto;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      -webkit-app-region: no-drag;
+    }
+    .win-btn:hover { background: var(--card-2); color: var(--text); }
+    .win-btn:active { transform: scale(0.94); }
+    .win-btn--close:hover { background: #e81123; color: #fff; }
+
+    /* Solo un icono visible a la vez (el atributo hidden no es fiable en SVG) */
+    .win-btn svg { display: block; }
+    .win-btn #restoreIcon { display: none; }
+    .win-btn.is-max #maxIcon { display: none; }
+    .win-btn.is-max #restoreIcon { display: block; }
+
+    /* ======= Pestañas ======= */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 0 28px;
+      background: #0d1017;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      position: relative;
+      padding: 14px 18px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    .tab::after {
+      content: "";
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: -1px;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.25s ease;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--text); }
+    .tab.active::after { transform: scaleX(1); }
+
+    /* ======= Contenido ======= */
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 26px 28px 40px;
+    }
+
+    .panel { display: none; animation: fadeSlide 0.3s ease; }
+    .panel.active { display: block; }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ======= Hero ======= */
+    .hero-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 34px 36px;
+      border-radius: 22px;
+      overflow: hidden;
+      background:
+        linear-gradient(120deg, rgba(226, 35, 26, 0.10), transparent 45%),
+        var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .hero-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(420px 220px at 88% 20%, rgba(226, 35, 26, 0.22), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-info { position: relative; z-index: 1; max-width: 520px; }
+    .hero-info h2 { font-size: 27px; font-weight: 800; letter-spacing: 0.3px; }
+    .hero-info p  { margin-top: 8px; color: var(--muted); font-size: 14.5px; line-height: 1.55; }
+
+    .hero-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+
+    .btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      overflow: hidden;
+      user-select: none;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn--primary {
+      color: #fff;
+      background: linear-gradient(135deg, #ff3b2f, #c41a12);
+      box-shadow: 0 6px 18px rgba(226, 35, 26, 0.4);
+    }
+    .btn--primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(226, 35, 26, 0.55); }
+    .btn--primary:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+
+    .btn--big { padding: 15px 28px; font-size: 16px; border-radius: 14px; }
+
+    .btn-shine {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 40%;
+      left: -60%;
+      background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+      transform: skewX(-20deg);
+      animation: shine 3.2s ease-in-out infinite;
+    }
+    @keyframes shine {
+      0%, 60% { left: -60%; }
+      100%    { left: 130%; }
+    }
+
+    .btn--ghost { background: var(--card-2); border-color: var(--border-strong); color: var(--text); }
+    .btn--ghost:hover:not(:disabled) { background: #222a3d; transform: translateY(-1px); }
+
+    .btn--danger { background: transparent; border-color: rgba(226, 35, 26, 0.5); color: var(--accent-2); }
+    .btn--danger:hover:not(:disabled) { background: rgba(226, 35, 26, 0.12); }
+
+    .btn--sm { padding: 7px 14px; font-size: 12.5px; border-radius: 10px; }
+
+    .hero-art { position: relative; flex-shrink: 0; width: 190px; height: 150px; }
+    .hero-logo {
+      position: absolute;
+      top: 6px;
+      right: 10px;
+      width: 96px;
+      height: 96px;
+      border-radius: 26px;
+      display: grid;
+      place-items: center;
+      font-size: 56px;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, #ff3b2f, #b5140d);
+      box-shadow: 0 14px 34px rgba(226, 35, 26, 0.5);
+      transform: rotate(6deg);
+      animation: float 5s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: rotate(6deg) translateY(0); }
+      50%      { transform: rotate(6deg) translateY(-8px); }
+    }
+    .hero-block {
+      position: absolute;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-strong);
+      animation: floatBlock 6s ease-in-out infinite;
+    }
+    .b1 { width: 42px; height: 42px; bottom: 4px; left: 8px; animation-delay: 0.6s; }
+    .b2 { width: 26px; height: 26px; bottom: 52px; left: 56px; animation-delay: 1.4s; }
+    .b3 { width: 34px; height: 34px; bottom: 10px; right: 24px; animation-delay: 2.2s; }
+    @keyframes floatBlock {
+      0%, 100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+
+    /* ======= Cuadrícula de acciones rápidas ======= */
+    .quick-grid {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    .quick {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+      padding: 18px;
+      text-align: left;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+    .quick:hover {
+      transform: translateY(-3px);
+      border-color: rgba(226, 35, 26, 0.45);
+      background: var(--card-2);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+    .quick:active { transform: translateY(0) scale(0.98); }
+    .quick--danger:hover {
+      border-color: rgba(226, 35, 26, 0.6);
+      background: rgba(226, 35, 26, 0.08);
+    }
+    .quick--danger .quick-icon { filter: saturate(1.2); }
+    .quick-icon { font-size: 26px; margin-bottom: 8px; }
+    .quick-label { font-size: 14.5px; font-weight: 700; }
+    .quick-hint { font-size: 12px; color: var(--muted); }
+
+    /* ======= Secciones y listas ======= */
+    .section { margin-top: 30px; }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-head h3 { font-size: 16px; font-weight: 700; }
+
+    .game-list { display: grid; gap: 10px; }
+
+    .game-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      transition: all 0.2s ease;
+    }
+    .game-item:hover { background: var(--card-2); border-color: var(--border-strong); }
+
+    .game-icon {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+      background: linear-gradient(135deg, #2c3a5c, #1b2438);
+    }
+
+    .game-info { flex: 1; min-width: 0; }
+    .game-info .g-title { font-size: 14.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .game-info .g-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .game-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .mono { font-family: "Cascadia Mono", "Consolas", monospace; }
+
+    .empty { text-align: center; padding: 26px 0; font-size: 13.5px; }
+
+    /* ======= Tarjetas genéricas ======= */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-top: 22px;
+    }
+    .card h2 { font-size: 19px; font-weight: 800; }
+    .card h3 { font-size: 15px; font-weight: 700; }
+
+    .muted { color: var(--muted); font-size: 13.5px; line-height: 1.55; }
+    .muted.tiny { font-size: 12px; margin-top: 6px; }
+    .muted.tiny.launch-line { margin-top: 10px; }
+
+    /* ---- Jugar ---- */
+    .play-card { margin-top: 0; }
+    .play-row { display: flex; gap: 12px; margin-top: 18px; }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      padding: 13px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-soft);
+      color: var(--text);
+      font-size: 14.5px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    input[type="text"]::placeholder { color: #5a637a; }
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(226, 35, 26, 0.18);
+    }
+
+    .play-close-row { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border-strong); }
+
+    .chips {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .chip-label { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+    .chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-soft);
+      color: var(--text);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent-2); transform: translateY(-1px); }
+
+    /* ---- Versión ---- */
+    .version-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .vcard { margin-top: 0; }
+    .vcard-head { display: flex; align-items: center; gap: 10px; }
+    .vcard-icon { font-size: 20px; }
+    .vcard-version {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: 26px;
+      font-weight: 800;
+      margin-top: 14px;
+      letter-spacing: 0.3px;
+    }
+    .vcard-folder { font-size: 12px; color: var(--muted); margin-top: 6px; word-break: break-all; }
+    .vcard-badge { margin-top: 12px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge--ok        { background: rgba(46, 204, 113, 0.14); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.35); }
+    .badge--outdated  { background: rgba(226, 35, 26, 0.14); color: var(--accent-2); border: 1px solid rgba(226, 35, 26, 0.4); }
+    .badge--missing   { background: rgba(245, 181, 10, 0.12); color: var(--amber); border: 1px solid rgba(245, 181, 10, 0.4); }
+    .badge--newer     { background: rgba(61, 139, 255, 0.14); color: var(--blue); border: 1px solid rgba(61, 139, 255, 0.4); }
+    .badge--neutral   { background: rgba(139, 147, 167, 0.12); color: var(--muted); border: 1px solid var(--border-strong); }
+
+    .status-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .status-icon {
+      width: 52px;
+      height: 52px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      background: var(--card-2);
+      border: 1px solid var(--border-strong);
+    }
+    .status-text { flex: 1; min-width: 240px; }
+    .status-text h3 { font-size: 16px; }
+    .status-text p { color: var(--muted); font-size: 13px; margin-top: 3px; }
+    .status-actions { flex-shrink: 0; }
+
+    .progress {
+      height: 6px;
+      margin-top: 14px;
+      border-radius: 999px;
+      background: var(--card-2);
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.4s ease;
+    }
+    body.checking .progress-bar {
+      width: 100%;
+      animation: sweep 1.4s ease-in-out infinite;
+    }
+    @keyframes sweep {
+      0%   { margin-left: -60%; }
+      100% { margin-left: 100%; }
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    /* ---- Ajustes ---- */
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-row:first-child { padding-top: 0; }
+    .settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .settings-row h3 { font-size: 14.5px; }
+    .settings-row .muted { margin-top: 3px; font-size: 12.5px; max-width: 520px; }
+
+    .switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: var(--card-2);
+      border: 1px solid var(--border-strong);
+      cursor: pointer;
+      transition: all 0.22s ease;
+    }
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      background: #fff;
+      transition: transform 0.22s ease;
+    }
+    .switch input:checked + .slider { background: linear-gradient(135deg, #ff3b2f, #c41a12); border-color: transparent; }
+    .switch input:checked + .slider::before { transform: translateX(20px); }
+
+    .about-card p { margin-top: 6px; }
+
+    /* ---- Modal selector de versión ---- */
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 6, 10, 0.72);
+      backdrop-filter: blur(6px);
+      padding: 20px;
+    }
+    .modal-box {
+      width: min(480px, 100%);
+      max-height: 82vh;
+      overflow-y: auto;
+      background: var(--card-2);
+      border: 1px solid var(--border-strong);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+    .modal-box h3 { font-size: 17px; margin-bottom: 4px; }
+    .vp-item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 12px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .vp-item:hover { border-color: var(--accent); background: var(--card-2); transform: translateY(-1px); }
+    .vp-cancel { margin-top: 14px; }
+
+    /* ---- Downgrade ---- */
+    .dg-dl { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .dg-input { flex: 0 1 260px; min-width: 0; }
+    .dg-head-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .dg-head-row h3 { margin-bottom: 3px; }
+    .dg-head-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+    .dg-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      transition: all 0.2s ease;
+    }
+    .dg-item:hover { border-color: var(--border-strong); background: var(--card-2); }
+    .dg-info { flex: 1; min-width: 0; }
+    .dg-title { font-size: 13.5px; font-weight: 700; }
+    .dg-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .dg-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ======= Toasts ======= */
+    .toasts {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 340px;
+    }
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 13px 16px;
+      border-radius: 12px;
+      background: var(--card-2);
+      border: 1px solid var(--border-strong);
+      border-left: 4px solid var(--blue);
+      box-shadow: var(--shadow);
+      font-size: 13.5px;
+      line-height: 1.45;
+      animation: toastIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
+    .toast--ok      { border-left-color: var(--green); }
+    .toast--error   { border-left-color: var(--accent); }
+    .toast--info    { border-left-color: var(--blue); }
+    .toast--warn    { border-left-color: var(--amber); }
+    .toast.out { animation: toastOut 0.3s ease forwards; }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(30px) scale(0.95); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(40px); }
+    }
+
+    /* ======= Banner de actualización de la app ======= */
+    .update-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 95;
+      background: linear-gradient(90deg, rgba(226, 35, 26, 0.16), rgba(61, 139, 255, 0.12));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(8px);
+      padding: 11px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 13.5px;
+      animation: updateDrop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+    }
+    @keyframes updateDrop {
+      from { transform: translateY(-100%); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    .update-banner strong { font-weight: 700; }
+    .update-progress {
+      width: 150px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+    .update-progress-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.3s ease;
+    }
+    .update-banner .btn--sm { padding: 5px 12px; }
+    .update-banner .btn--primary { box-shadow: none; }
+    .update-banner .btn--primary:hover:not(:disabled) { transform: translateY(-1px); }
+
+    /* ======= Banner demo y pie ======= */
+    .demo-banner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 90;
+      padding: 9px 16px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--amber);
+      background: rgba(245, 181, 10, 0.1);
+      border-bottom: 1px solid rgba(245, 181, 10, 0.3);
+    }
+    .demo-banner code { background: rgba(0, 0, 0, 0.35); padding: 2px 6px; border-radius: 6px; }
+
+    /* ---- Scrollbar oscuro a juego con el tema (nada blanco) ---- */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: #2a3042;
+      border-radius: 6px;
+      border: 2px solid var(--bg);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: #3a4157; }
+    ::-webkit-scrollbar-corner { background: transparent; }
+
+    /* El atributo hidden siempre gana */
+    [hidden] { display: none !important; }
+
+    .foot {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 0 0 26px;
+      font-size: 12px;
+      color: #4d5468;
+    }
+
+    /* ======= Responsive ======= */
+    @media (max-width: 560px) {
+      .brand-text p { display: none; }
+      .topbar { padding: 14px 18px; }
+      .tabs { padding: 0 12px; }
+      .win-controls { border-left: none; padding-left: 0; }
+    }
+
+    @media (max-width: 760px) {
+      .version-grid { grid-template-columns: 1fr; }
+      .hero-card { flex-direction: column; align-items: flex-start; }
+      .hero-art { display: none; }
+      .topbar { padding: 14px 18px; }
+      .tabs { padding: 0 12px; }
+      .content { padding: 20px 18px 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <!-- ======= Cabecera fija (barra superior + pestañas) ======= -->
+  <div class="app-header">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">R</div>
+      <div class="brand-text">
+        <h1>Roblox <span>Launcher</span></h1>
+        <p>Tu centro de control</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="statusPill" class="pill pill--unknown" title="Estado de la versión">
+        <span class="pill-dot"></span>
+        <span id="statusPillText">Comprobando…</span>
+      </div>
+      <button id="refreshBtn" class="icon-btn" title="Comprobar versión ahora" aria-label="Comprobar versión">&#10227;</button>
+      <!-- Controles de ventana (la ventana no tiene marco nativo) -->
+      <div class="win-controls" role="group" aria-label="Controles de ventana">
+        <button id="winMinBtn" class="win-btn" title="Minimizar" aria-label="Minimizar">
+          <svg width="12" height="12" viewBox="0 0 10 10" aria-hidden="true">
+            <line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+        </button>
+        <button id="winMaxBtn" class="win-btn" title="Maximizar" aria-label="Maximizar">
+          <svg id="maxIcon" width="12" height="12" viewBox="0 0 10 10" aria-hidden="true">
+            <rect x="1.5" y="1.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+          <svg id="restoreIcon" width="12" height="12" viewBox="0 0 10 10" aria-hidden="true">
+            <rect x="1" y="2.5" width="6.5" height="6.5" fill="none" stroke="currentColor" stroke-width="1.2" />
+            <path d="M2.5 2.5 V1.5 H8.5 V7.5 H7.5" fill="none" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+        </button>
+        <button id="winCloseBtn" class="win-btn win-btn--close" title="Cerrar" aria-label="Cerrar">
+          <svg width="12" height="12" viewBox="0 0 10 10" aria-hidden="true">
+            <path d="M1.5 1.5 L8.5 8.5 M8.5 1.5 L1.5 8.5" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ======= Pestañas ======= -->
+  <nav class="tabs" role="tablist" aria-label="Secciones del launcher">
+    <button class="tab active" data-tab="home" role="tab" aria-selected="true">Inicio</button>
+    <button class="tab" data-tab="play" role="tab" aria-selected="false">Jugar</button>
+    <button class="tab" data-tab="version" role="tab" aria-selected="false">Versión</button>
+    <button class="tab" data-tab="downgrade" role="tab" aria-selected="false">Downgrade</button>
+    <button class="tab" data-tab="settings" role="tab" aria-selected="false">Ajustes</button>
+  </nav>
+  </div>
+
+  <main class="content">
+
+    <!-- ======= Pestaña: Inicio ======= -->
+    <section id="panel-home" class="panel active" data-panel="home">
+      <div class="hero-card">
+        <div class="hero-info">
+          <h2 id="heroTitle">Comprobando Roblox…</h2>
+          <p id="heroSub">Conectando con los servidores de Roblox.</p>
+          <div class="hero-actions">
+            <button id="playBigBtn" class="btn btn--primary btn--big">
+              <span class="btn-shine" aria-hidden="true"></span>&#9654;&nbsp; Jugar Roblox
+            </button>
+            <button id="goPlayTabBtn" class="btn btn--ghost">Jugar un juego por ID</button>
+          </div>
+          <p id="launchVersionLine" class="muted tiny launch-line">Lanzará: —</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="hero-logo">R</div>
+          <div class="hero-block b1"></div>
+          <div class="hero-block b2"></div>
+          <div class="hero-block b3"></div>
+        </div>
+      </div>
+
+      <div class="grid quick-grid">
+        <button class="quick" data-action="versions">
+          <span class="quick-icon">&#128193;</span>
+          <span class="quick-label">Abrir versiones</span>
+          <span class="quick-hint">Carpeta de instalación</span>
+        </button>
+        <button class="quick" data-action="roblox">
+          <span class="quick-icon">&#128194;</span>
+          <span class="quick-label">Carpeta Roblox</span>
+          <span class="quick-hint">Datos de la app</span>
+        </button>
+        <button class="quick" data-action="update">
+          <span class="quick-icon">&#11015;</span>
+          <span class="quick-label">Actualizar Roblox</span>
+          <span class="quick-hint">Instalador oficial</span>
+        </button>
+        <button class="quick" data-action="web">
+          <span class="quick-icon">&#127760;</span>
+          <span class="quick-label">Sitio web</span>
+          <span class="quick-hint">Roblox.com</span>
+        </button>
+        <button class="quick quick--danger" id="closeRobloxQuick" data-action="close" hidden>
+          <span class="quick-icon">&#128683;</span>
+          <span class="quick-label">Cerrar Roblox</span>
+        </button>
+      </div>
+
+      <div class="section" id="recentSection" hidden>
+        <div class="section-head">
+          <h3>Recientes</h3>
+          <button class="btn btn--ghost btn--sm" id="clearRecentBtn">Limpiar</button>
+        </div>
+        <div id="recentList" class="game-list"></div>
+      </div>
+    </section>
+
+    <!-- ======= Pestaña: Jugar ======= -->
+    <section id="panel-play" class="panel" data-panel="play">
+      <div class="card play-card">
+        <h2>Jugar por ID</h2>
+        <p class="muted">Pega el ID de un juego de Roblox y lánzalo al instante con tu cliente.</p>
+        <div class="play-row">
+          <input id="placeIdInput" type="text" inputmode="numeric"
+                 placeholder="Ej. 2753915549 · Blox Fruits" autocomplete="off" />
+          <button id="playGameBtn" class="btn btn--primary" disabled>Jugar</button>
+        </div>
+        <div class="chips">
+          <span class="chip-label">Populares:</span>
+          <button class="chip" data-id="2753915549">Blox Fruits</button>
+          <button class="chip" data-id="920587237">Adopt Me</button>
+          <button class="chip" data-id="4924922222">Brookhaven</button>
+          <button class="chip" data-id="286090429">Arsenal</button>
+          <button class="chip" data-id="5117242094">Murder Mystery 2</button>
+          <button class="chip" data-id="2454936587">Pet Simulator 99</button>
+        </div>
+        <div class="play-close-row">
+          <button class="btn btn--danger" id="closeRobloxPlayBtn" data-action="close" hidden>&#128683;&nbsp; Cerrar Roblox</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h3>Historial</h3></div>
+        <div id="historyList" class="game-list"></div>
+        <p id="historyEmpty" class="muted empty">
+          Todavía no has jugado nada desde el launcher. ¡Lanza tu primer juego!
+        </p>
+      </div>
+    </section>
+
+    <!-- ======= Pestaña: Versión ======= -->
+    <section id="panel-version" class="panel" data-panel="version">
+      <div class="version-grid">
+        <div class="card vcard">
+          <div class="vcard-head">
+            <span class="vcard-icon">&#128187;</span>
+            <h3>Versión instalada</h3>
+          </div>
+          <div class="vcard-version" id="installedVersion">—</div>
+          <div class="vcard-folder mono" id="installedFolder">Buscando en tu equipo…</div>
+          <div class="vcard-badge" id="installedBadge"></div>
+        </div>
+        <div class="card vcard">
+          <div class="vcard-head">
+            <span class="vcard-icon">&#9729;</span>
+            <h3>Última versión</h3>
+          </div>
+          <div class="vcard-version" id="latestVersion">—</div>
+          <div class="vcard-folder mono" id="latestFolder">Consultando la API de Roblox…</div>
+          <div class="vcard-badge" id="latestBadge"></div>
+        </div>
+      </div>
+
+      <div class="card status-card" id="statusCard">
+        <div class="status-icon" id="statusIcon">&#8505;&#65039;</div>
+        <div class="status-text">
+          <h3 id="statusTitle">Comprobando…</h3>
+          <p id="statusDesc">Consultando la última versión oficial de Roblox.</p>
+          <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+        </div>
+        <div class="status-actions">
+          <button id="checkBtn" class="btn btn--primary">Comprobar ahora</button>
+        </div>
+      </div>
+
+      <div class="card actions-card">
+        <h3>Acciones de versión</h3>
+        <div class="action-row">
+          <button class="btn btn--ghost" data-action="versions">&#128193;&nbsp; Abrir carpeta de versiones</button>
+          <button class="btn btn--ghost" data-action="roblox">&#128194;&nbsp; Abrir carpeta Roblox</button>
+          <button class="btn btn--ghost" data-action="update">&#11015;&nbsp; Actualizar Roblox</button>
+          <button class="btn btn--ghost" data-action="web">&#127760;&nbsp; Descargar de la web</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= Pestaña: Downgrade ======= -->
+    <section id="panel-downgrade" class="panel" data-panel="downgrade">
+      <div class="card dg-head-row">
+        <div>
+          <h3>Respaldos guardados</h3>
+        </div>
+        <div class="dg-head-actions">
+          <button id="backupsFolderBtn" class="btn btn--ghost btn--sm">&#128193;&nbsp; Abrir carpeta</button>
+          <button id="createBackupBtn" class="btn btn--primary btn--sm">&#11015;&nbsp; Guardar respaldo</button>
+        </div>
+      </div>
+      <div id="backupsList" class="game-list"></div>
+      <p id="backupsEmpty" class="muted empty">No hay respaldos todavía.</p>
+
+      <div class="section">
+        <div class="section-head"><h3>Versiones instaladas</h3></div>
+        <div id="versionsList" class="game-list"></div>
+        <p id="versionsEmpty" class="muted empty">No se encontró ninguna instalación de Roblox.</p>
+      </div>
+
+      <div class="card dg-dl">
+        <div>
+          <h3>Descargar versión</h3>
+          <p class="muted" id="dlStatus">Pega el hash de la versión (ej. <span class="mono">145f189a6a974303</span>).</p>
+        </div>
+        <div class="dg-head-actions">
+          <input id="versionHashInput" class="dg-input" type="text"
+                 placeholder="145f189a6a974303" autocomplete="off" spellcheck="false" />
+          <button id="installVersionBtn" class="btn btn--primary btn--sm" disabled>&#11015;&nbsp; Descargar e instalar</button>
+        </div>
+      </div>
+
+      <div class="card" id="protectCard">
+        <div class="dg-head-row">
+          <div>
+            <h3>Protección contra actualización</h3>
+            <p class="muted" id="protectDesc">…</p>
+          </div>
+          <div class="dg-head-actions">
+            <span id="protectBadge" class="badge badge--neutral">—</span>
+            <button id="protectToggleBtn" class="btn btn--ghost btn--sm" disabled>…</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card dg-head-row">
+        <div>
+          <h3>Importar versión</h3>
+        </div>
+        <div class="dg-head-actions">
+          <button id="importVersionBtn" class="btn btn--ghost btn--sm">&#128194;&nbsp; Elegir carpeta…</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= Pestaña: Ajustes ======= -->
+    <section id="panel-settings" class="panel" data-panel="settings">
+      <div class="card">
+        <div class="settings-row">
+          <div>
+            <h3>Comprobar versión al iniciar</h3>
+            <p class="muted">Revisa automáticamente si Roblox está actualizado cada vez que abres el launcher.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="autoCheckToggle" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div>
+            <h3>Notificaciones (toasts)</h3>
+            <p class="muted">Muestra avisos al lanzar juegos, actualizar o completar comprobaciones.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toastsToggle" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div>
+            <h3>Historial de juegos</h3>
+            <p class="muted">Se guarda localmente en este equipo. Puedes borrarlo cuando quieras.</p>
+          </div>
+          <button class="btn btn--danger" id="clearHistoryBtn">Borrar historial</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="settings-row">
+          <div>
+            <h3>Actualizaciones de la app</h3>
+            <p class="muted">Revisa si hay una versión nueva de Roblox Launcher. Si hay, se descarga y se instala sola al reiniciar.</p>
+          </div>
+          <button class="btn btn--ghost btn--sm" id="checkAppUpdateBtn">&#10227;&nbsp; Comprobar</button>
+        </div>
+      </div>
+
+      <div class="card about-card">
+        <h3>Acerca de</h3>
+        <p class="muted" id="aboutText">Roblox Launcher v1.0.0 · Hecho con Electron</p>
+        <p class="muted tiny">
+          Roblox Launcher es una app independiente: no está afiliada a Roblox ni a Roblox Corporation.
+          Lo único que hace es abrir el cliente de Roblox que ya tienes instalado en tu equipo.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span id="footMode"></span>
+  </footer>
+
+  <!-- Modal: elegir versión de Roblox a lanzar -->
+  <div id="versionPicker" class="modal" hidden>
+    <div class="modal-box" role="dialog" aria-label="Elegir versión">
+      <h3>Elegir versión de Roblox</h3>
+      <p class="muted">Tienes varias versiones instaladas. ¿Cuál quieres lanzar?</p>
+      <div id="vpList"></div>
+      <div class="vp-cancel"><button id="vpCancelBtn" class="btn btn--ghost btn--sm">Cancelar</button></div>
+    </div>
+  </div>
+
+  <!-- Banner: hay una nueva versión de la app -->
+  <div id="updateBanner" class="update-banner" hidden>
+    <span id="updateBannerText"></span>
+    <div class="update-progress" id="updateProgressWrap" hidden>
+      <div class="update-progress-bar" id="updateProgressBar"></div>
+    </div>
+    <button id="updateActionBtn" class="btn btn--primary btn--sm">Actualizar</button>
+  </div>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="demoBanner" class="demo-banner" hidden>
+    <strong>Vista previa (demo):</strong> abre la app real con <code>npm start</code> para lanzar Roblox de verdad.
+  </div>
+
+  <script>
+    'use strict';
+
+    /* ============================================================
+       Roblox Launcher — lógica de la interfaz (renderer)
+       Funciona con la API real (Electron) o en modo demo para
+       poder previsualizar la interfaz en un navegador.
+       ============================================================ */
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    // ---- Modo demo (cuando no estamos dentro de Electron) ----
+
+    const DEMO_POPULAR = {
+      2753915549: 'Blox Fruits',
+      920587237: 'Adopt Me',
+      4924922222: 'Brookhaven',
+      286090429: 'Arsenal',
+      5117242094: 'Murder Mystery 2',
+      2454936587: 'Pet Simulator 99',
+    };
+
+    const demoAPI = {
+      async checkVersion() {
+        await sleep(1500);
+        return {
+          ok: true,
+          status: 'outdated',
+          installed: { folder: 'version-d584fb6c717a43d9', version: '2.651.0.6510000' },
+          latest: { folder: 'version-2.656.0.6560723', version: '2.656.0.6560723' },
+          checkedAt: Date.now(),
+          _demo: true,
+        };
+      },
+      async launchClient() {
+        await sleep(700);
+        return { ok: true, launched: true, _demo: true };
+      },
+      async launchClientVersion(folder) {
+        await sleep(700);
+        const known = { 'version-d584fb6c717a43d9': '0.733.0.7330989', 'version-145f189a6a974303': '0.732.23.7321040' };
+        return { ok: true, launched: true, folder, version: known[folder] || '—', _demo: true };
+      },
+      async playGame(placeId) {
+        await sleep(900);
+        return { ok: true, launched: true, placeId, _demo: true };
+      },
+      async openVersionsFolder() { return true; },
+      async openRobloxFolder() { return true; },
+      async isRobloxRunning() { return true; },
+      async closeRoblox() {
+        await sleep(600);
+        return { ok: true, wasRunning: true, _demo: true };
+      },
+      async updateRoblox() { return { ok: true, started: true, _demo: true }; },
+      async openExternal(url) {
+        window.open(url, '_blank', 'noopener');
+        return true;
+      },
+      // ---- Downgrade (demo, con estado simulado) ----
+      _demoBackups: [
+        { folder: 'version-d584fb6c717a43d9', version: '0.733.0.7330989', created: Date.now() - 2 * 86400e3, sizeMB: 338 },
+      ],
+      _demoProtected: false,
+      async listInstalledVersions() {
+        return [
+          { folder: 'version-d584fb6c717a43d9', version: '0.733.0.7330989', sizeMB: 338, mtimeMs: Date.now() - 3600e3, active: true },
+          { folder: 'version-9a2c1f0e44b3d7c6', version: '0.731.0.7311234', sizeMB: 332, mtimeMs: Date.now() - 30 * 86400e3, active: false },
+        ];
+      },
+      async createBackup() {
+        await sleep(1200);
+        this._demoBackups.unshift({ folder: 'version-d584fb6c717a43d9', version: '0.733.0.7330989', created: Date.now(), sizeMB: 338 });
+        return { ok: true, folder: 'version-d584fb6c717a43d9', version: '0.733.0.7330989', sizeMB: 338, _demo: true };
+      },
+      async listBackups() {
+        return this._demoBackups;
+      },
+      async restoreBackup(folder) {
+        await sleep(1400);
+        return { ok: true, folder, version: '0.731.0.7311234', _demo: true };
+      },
+      async deleteBackup(folder) {
+        await sleep(400);
+        this._demoBackups = this._demoBackups.filter((b) => b.folder !== folder);
+        return { ok: true, folder, _demo: true };
+      },
+      async openBackupsFolder() { return true; },
+      async importVersion() { return { ok: false, canceled: true, _demo: true }; },
+      async getProtection() {
+        return { protected: this._demoProtected, folder: 'version-d584fb6c717a43d9', filesProtected: this._demoProtected ? 3 : 0, installerMoved: this._demoProtected };
+      },
+      async setProtection(enabled) {
+        await sleep(500);
+        this._demoProtected = enabled;
+        return { ok: true, protected: enabled, _demo: true };
+      },
+      async getVersionInstalled(hash) {
+        return hash === '145f189a6a974303'
+          ? { installed: true, hash, folder: 'version-145f189a6a974303', version: '0.732.23.7321040', sizeMB: 179, _demo: true }
+          : { installed: false, hash, _demo: true };
+      },
+      async installVersion(hash) {
+        await sleep(1800);
+        return { ok: true, hash, folder: 'version-145f189a6a974303', version: '0.732.23.7321040', sizeMB: 179, _demo: true };
+      },
+      async activateVersion(hash) {
+        await sleep(1500);
+        return { ok: true, folder: 'version-d584fb6c717a43d9', version: '0.732.23.7321040', hash, _demo: true };
+      },
+      // ---- Auto-actualización de la app (demo: simula el flujo) ----
+      appUpdate: {
+        currentVersion: async () => ({ version: '1.0.0' }),
+        check: async () => ({ ok: true, dev: true }),
+        download: async () => ({ ok: true, dev: true }),
+        install: async () => ({ ok: true, dev: true }),
+        onStatus: (callback) => { /* en demo se dispara desde el botón */ },
+      },
+    };
+
+    const API = window.robloxAPI || demoAPI;
+    const IS_DEMO = !window.robloxAPI;
+
+    // ---- Estado ----
+
+    const settings = loadSettings();
+    const state = { checking: false, version: null };
+
+    // ---- Persistencia local ----
+
+    function loadHistory() {
+      try {
+        return JSON.parse(localStorage.getItem('rl_history') || '[]');
+      } catch {
+        return [];
+      }
+    }
+    function saveHistory(list) {
+      localStorage.setItem('rl_history', JSON.stringify(list));
+    }
+    function loadSettings() {
+      const base = { autoCheck: true, toasts: true };
+      try {
+        return { ...base, ...JSON.parse(localStorage.getItem('rl_settings') || '{}') };
+      } catch {
+        return base;
+      }
+    }
+    function saveSettings() {
+      localStorage.setItem('rl_settings', JSON.stringify(settings));
+    }
+
+    // ---- Llamadas seguras a la API ----
+    // Si una llamada IPC falla, mostramos un aviso en vez de romper la UI.
+    async function safe(call) {
+      try {
+        return await call();
+      } catch (err) {
+        console.error('[launcher]', err);
+        toast('error', 'Ocurrió un error inesperado: ' + (err && err.message ? err.message : 'desconocido'));
+        return null;
+      }
+    }
+
+    // ---- Toasts ----
+
+    function toast(type, message) {
+      if (!settings.toasts) return;
+      const box = $('#toasts');
+      const el = document.createElement('div');
+      el.className = `toast toast--${type}`;
+      el.textContent = message;
+      box.appendChild(el);
+      setTimeout(() => {
+        el.classList.add('out');
+        el.addEventListener('animationend', () => el.remove(), { once: true });
+      }, 3400);
+    }
+
+    // ---- Pestañas ----
+
+    function switchTab(name) {
+      $$('.tab').forEach((t) => {
+        const active = t.dataset.tab === name;
+        t.classList.toggle('active', active);
+        t.setAttribute('aria-selected', String(active));
+      });
+      $$('.panel').forEach((p) => p.classList.toggle('active', p.dataset.panel === name));
+      if (name === 'downgrade') refreshDowngrade(); // datos frescos al abrir
+    }
+
+    // ---- Estado de versión en la UI ----
+
+    const STATUS_UI = {
+      ok: {
+        pill: ['ok', 'Al día'],
+        hero: ['¡Roblox está actualizado!', 'Tienes la última versión del cliente instalada.'],
+        icon: '✅',
+        title: 'Todo en orden',
+        desc: 'Tu cliente coincide con la última versión oficial de Roblox.',
+      },
+      outdated: {
+        pill: ['outdated', '¡Desactualizado!'],
+        hero: ['Hay una actualización disponible', 'Instala la última versión para jugar sin problemas.'],
+        icon: '⚠️',
+        title: 'Roblox desactualizado',
+        desc: 'Tienes una versión anterior a la última disponible. Usa "Actualizar Roblox" para ponerte al día.',
+      },
+      missing: {
+        pill: ['missing', 'Roblox no instalado'],
+        hero: ['Roblox no está instalado', 'Descárgalo gratis desde la web oficial y vuelve a comprobarlo.'],
+        icon: '📥',
+        title: 'Roblox no encontrado',
+        desc: 'No encontramos una instalación de Roblox en este equipo. Descarga el cliente oficial para poder jugar.',
+      },
+      'newer-than-latest': {
+        pill: ['ok', 'Al día (versión futura)'],
+        hero: ['Versión más reciente que el servidor', 'Puede ser una versión de prueba o beta. No hay nada que hacer.'],
+        icon: '🔮',
+        title: 'Versión experimental detectada',
+        desc: 'Tu versión es más nueva que la última versión pública. Probablemente estás en un canal beta.',
+      },
+      unknown: {
+        pill: ['unknown', 'Sin conexión'],
+        hero: ['No se pudo comprobar la versión', 'Revisa tu conexión a internet e inténtalo de nuevo.'],
+        icon: '🌐',
+        title: 'Comprobación fallida',
+        desc: 'No pudimos consultar la última versión oficial. Puede que no tengas conexión a internet.',
+      },
+    };
+
+    function setPill(kind, text) {
+      const pill = $('#statusPill');
+      pill.className = `pill pill--${kind}`;
+      $('#statusPillText').textContent = text;
+    }
+
+    function setStatusCard(icon, title, desc, checking = false) {
+      $('#statusIcon').textContent = icon;
+      $('#statusTitle').textContent = title;
+      $('#statusDesc').textContent = desc;
+      document.body.classList.toggle('checking', checking);
+    }
+
+    function setBadge(sel, kind, text) {
+      const el = $(sel);
+      if (!text) { el.innerHTML = ''; return; }
+      el.innerHTML = `<span class="badge badge--${kind}">${text}</span>`;
+    }
+
+    function renderVersion(result) {
+      state.version = result;
+      updateLaunchLine();
+
+      if (result.status === 'missing') {
+        setPill('missing', 'Roblox no instalado');
+        setStatusCard('📥', 'Roblox no está instalado',
+          'Descárgalo gratis desde la web oficial y vuelve a comprobarlo.');
+        $('#heroTitle').textContent = 'Roblox no está instalado';
+        $('#heroSub').textContent = 'Descárgalo gratis desde la web oficial y vuelve a comprobarlo.';
+        $('#installedVersion').textContent = '—';
+        $('#installedFolder').textContent = 'No se encontró instalación';
+        $('#latestVersion').textContent = result.latest ? result.latest.version : '—';
+        $('#latestFolder').textContent = result.latest ? result.latest.folder : 'Sin datos';
+        setBadge('#installedBadge', 'missing', 'No instalado');
+        setBadge('#latestBadge', 'neutral', 'Disponible en roblox.com');
+        return;
+      }
+
+      if (result.status === 'unknown') {
+        setPill('unknown', 'Sin conexión');
+        setStatusCard('🌐', 'No se pudo comprobar la versión',
+          'Revisa tu conexión a internet e inténtalo de nuevo.');
+        $('#heroTitle').textContent = 'No se pudo comprobar la versión';
+        $('#heroSub').textContent = 'Revisa tu conexión a internet e inténtalo de nuevo.';
+      } else {
+        const ui = STATUS_UI[result.status] || STATUS_UI.unknown;
+        setPill(ui.pill[0], ui.pill[1]);
+        setStatusCard(ui.icon, ui.title, ui.desc);
+        $('#heroTitle').textContent = ui.hero[0];
+        $('#heroSub').textContent = ui.hero[1];
+      }
+
+      if (result.installed) {
+        $('#installedVersion').textContent = result.installed.version;
+        $('#installedFolder').textContent = result.installed.folder;
+      }
+      if (result.latest) {
+        $('#latestVersion').textContent = result.latest.version;
+        $('#latestFolder').textContent = result.latest.folder;
+      }
+
+      if (result.status === 'outdated') {
+        if (result.downgraded) {
+          // Downgrade intencional: se muestra en azul, no como alarma.
+          setPill('downgrade', 'Downgrade activo');
+          setStatusCard('🔒', 'Versión anterior activa',
+            `Estás en una versión anterior a propósito (downgrade protegido). La última oficial es ${result.latest ? result.latest.version : 'la última'}. Desprotege y actualiza para volver a la última.`);
+          $('#heroTitle').textContent = 'Versión anterior activa';
+          $('#heroSub').textContent = 'Downgrade protegido: Roblox no se actualizará sola.';
+          setBadge('#installedBadge', 'neutral', 'Versión elegida');
+          setBadge('#latestBadge', 'ok', 'Última');
+        } else {
+          setBadge('#installedBadge', 'outdated', 'Desactualizada');
+          setBadge('#latestBadge', 'ok', 'Última');
+        }
+      } else if (result.status === 'ok') {
+        setBadge('#installedBadge', 'ok', 'Al día');
+        setBadge('#latestBadge', 'ok', 'Última');
+      } else if (result.status === 'newer-than-latest') {
+        setBadge('#installedBadge', 'newer', 'Más nueva');
+        setBadge('#latestBadge', 'neutral', 'Pública');
+      }
+    }
+
+    async function checkVersion({ silent = false } = {}) {
+      if (state.checking) return;
+      state.checking = true;
+      document.body.classList.add('checking');
+      setPill('checking', 'Comprobando…');
+      setStatusCard('🔍', 'Comprobando versión…', 'Consultando la última versión oficial de Roblox.', true);
+
+      const result = await safe(() => API.checkVersion());
+
+      state.checking = false;
+      document.body.classList.remove('checking');
+      if (!result) {
+        setPill('unknown', 'Error');
+        setStatusCard('❌', 'Error al comprobar', 'No se pudo completar la comprobación.');
+        return;
+      }
+      renderVersion(result);
+      if (result.error && !silent) {
+        toast('error', 'No se pudo consultar la última versión: ' + result.error);
+      } else if (result.status === 'outdated' && !silent) {
+        toast('warn', 'Tienes una versión anterior. ¡Actualiza Roblox!');
+      }
+    }
+
+    // ---- Historial de juegos ----
+
+    function gameTitle(id) {
+      return DEMO_POPULAR[id] || `Juego #${id}`;
+    }
+
+    function renderHistory() {
+      const list = loadHistory();
+      const container = $('#historyList');
+      const empty = $('#historyEmpty');
+      const recentSection = $('#recentSection');
+
+      container.innerHTML = '';
+      empty.hidden = list.length > 0;
+
+      const recent = list.slice(0, 4);
+      recentSection.hidden = recent.length === 0;
+      const recentList = $('#recentList');
+      recentList.innerHTML = '';
+      recent.forEach((g) => recentList.appendChild(gameItem(g.id, g.playedAt)));
+
+      list.forEach((g) => container.appendChild(gameItem(g.id, g.playedAt)));
+    }
+
+    function gameItem(id, playedAt) {
+      const el = document.createElement('div');
+      el.className = 'game-item';
+
+      const icon = document.createElement('div');
+      icon.className = 'game-icon';
+      icon.textContent = gameTitle(id).split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
+      const info = document.createElement('div');
+      info.className = 'game-info';
+      info.innerHTML = `
+        <div class="g-title">${gameTitle(id)}</div>
+        <div class="g-meta">ID: ${id}${playedAt ? ' · ' + new Date(playedAt).toLocaleString('es') : ''}</div>
+      `;
+
+      const actions = document.createElement('div');
+      actions.className = 'game-actions';
+
+      const playBtn = document.createElement('button');
+      playBtn.className = 'btn btn--primary btn--sm';
+      playBtn.textContent = 'Jugar';
+      playBtn.addEventListener('click', () => playGame(id));
+
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'btn btn--ghost btn--sm';
+      copyBtn.textContent = '🔗 Copiar';
+      copyBtn.addEventListener('click', () => copyGameLink(id));
+
+      actions.append(playBtn, copyBtn);
+      el.append(icon, info, actions);
+      return el;
+    }
+
+    function addHistory(id) {
+      const list = loadHistory().filter((g) => g.id !== id);
+      list.unshift({ id, playedAt: Date.now() });
+      saveHistory(list.slice(0, 12));
+      renderHistory();
+    }
+
+    async function copyGameLink(id) {
+      const url = `https://www.roblox.com/games/${id}`;
+      try {
+        await navigator.clipboard.writeText(url);
+        toast('ok', 'Enlace copiado al portapapeles.');
+      } catch {
+        toast('info', url);
+      }
+    }
+
+    // ---- Estado de Roblox (mostrar/ocultar el botón Cerrar) ----
+
+    let robloxCheckBusy = false;
+    async function refreshRobloxRunning() {
+      if (robloxCheckBusy) return; // evita llamadas tasklist solapadas
+      robloxCheckBusy = true;
+      try {
+        const running = await safe(() => API.isRobloxRunning());
+        if (running === null) return null;
+        const show = !!running;
+        $('#closeRobloxQuick').hidden = !show;
+        $('#closeRobloxPlayBtn').hidden = !show;
+        $('.play-close-row').hidden = !show; // oculta también el divisor
+        return show;
+      } finally {
+        robloxCheckBusy = false;
+      }
+    }
+
+    // ---- Acciones de juego ----
+
+    async function playGame(id) {
+      const placeId = String(id || '').trim().replace(/[^0-9]/g, '');
+      if (!/^[0-9]{5,}$/.test(placeId)) {
+        toast('error', 'Ese ID no parece válido. Revisa el número del juego.');
+        return;
+      }
+      toast('info', IS_DEMO ? '(Demo) Lanzando juego…' : `Lanzando juego #${placeId}…`);
+      const res = await safe(() => API.playGame(placeId));
+      if (!res) return;
+      if (res.ok || res._demo) {
+        addHistory(placeId);
+        toast('ok', `¡${gameTitle(placeId)} se está abriendo en Roblox!`);
+        refreshRobloxRunning();
+      } else if (res.reason === 'not-installed') {
+        toast('warn', 'Roblox no está instalado. Se abrió la web para descargarlo.');
+      } else {
+        toast('error', 'No se pudo lanzar el juego.');
+      }
+      return res;
+    }
+
+    async function launchClient() {
+      toast('info', IS_DEMO ? '(Demo) Abriendo Roblox…' : 'Abriendo Roblox…');
+      const res = await safe(() => API.launchClient());
+      if (!res) return;
+      if (res.ok || res._demo) {
+        toast('ok', 'Roblox se está abriendo. ¡A jugar!');
+        refreshRobloxRunning();
+      } else if (res.reason === 'not-installed') {
+        toast('warn', 'Roblox no está instalado. Se abrió la web para descargarlo.');
+      } else {
+        toast('error', 'No se pudo abrir Roblox.');
+      }
+    }
+
+    async function runQuickAction(action) {
+      switch (action) {
+        case 'versions': {
+          const res = await safe(() => API.openVersionsFolder());
+          if (res === null) return;
+          if (IS_DEMO || res === true || res.ok) {
+            toast('ok', IS_DEMO ? '(Demo) Carpeta de versiones' : 'Carpeta de versiones abierta en el Explorador.');
+          } else {
+            toast('warn', 'No se pudo abrir la carpeta de versiones. ¿Roblox está instalado?');
+          }
+          break;
+        }
+        case 'roblox': {
+          const res = await safe(() => API.openRobloxFolder());
+          if (res === null) return;
+          if (IS_DEMO || res === true || res.ok) {
+            toast('ok', IS_DEMO ? '(Demo) Carpeta de Roblox' : 'Carpeta de Roblox abierta en el Explorador.');
+          } else {
+            toast('warn', 'No se pudo abrir la carpeta de Roblox. ¿Roblox está instalado?');
+          }
+          break;
+        }
+        case 'update': {
+          toast('info', IS_DEMO ? '(Demo) Actualizando Roblox…' : 'Actualizando Roblox… (sin abrir el navegador)');
+          const res = await safe(() => API.updateRoblox());
+          if (!res) return;
+          if (IS_DEMO) break;
+          if (res.alreadyUpToDate) {
+            toast('ok', `Ya tienes la última versión (${res.version}).`);
+          } else if (res.reason === 'protected') {
+            toast('warn', 'Tu versión está protegida (downgrade). Desprotégela en Downgrade antes de actualizar.');
+            switchTab('downgrade');
+          } else if (res.reason === 'roblox-running') {
+            toast('warn', 'Cierra Roblox antes de actualizar.');
+          } else if (res.reason === 'no-latest') {
+            toast('error', 'No se pudo consultar la última versión. Revisa tu conexión.');
+          } else if (res.ok) {
+            toast('ok', `¡Actualizado a ${res.version || 'la última versión'}!`);
+            checkVersion({ silent: true });
+            refreshDowngrade();
+          } else {
+            toast('error', 'No se pudo completar la actualización.');
+          }
+          break;
+        }
+        case 'web':
+          await safe(() => API.openExternal('https://www.roblox.com'));
+          if (IS_DEMO) toast('info', '(Demo) Abriendo roblox.com…');
+          break;
+        case 'close': {
+          toast('info', IS_DEMO ? '(Demo) Cerrando Roblox…' : 'Cerrando Roblox…');
+          const res = await safe(() => API.closeRoblox());
+          if (!res) return;
+          if (res.wasRunning) {
+            toast('ok', IS_DEMO ? '(Demo) Roblox cerrado.' : 'Roblox cerrado. ¡Nos vemos!');
+          } else {
+            toast('info', 'Roblox no estaba abierto.');
+          }
+          refreshRobloxRunning();
+          break;
+        }
+      }
+    }
+
+    // ---- Selector de versión a lanzar ----
+
+    let cachedVersions = [];
+
+    async function refreshVersionsCache() {
+      const v = await safe(() => API.listInstalledVersions());
+      if (v) cachedVersions = v;
+      return cachedVersions;
+    }
+
+    function updateLaunchLine() {
+      const line = $('#launchVersionLine');
+      if (!line) return;
+      const active = cachedVersions.find((x) => x.active);
+      const ver = active && active.version ? active.version
+        : (state.version && state.version.installed ? state.version.installed.version : null);
+      line.textContent = ver ? `Lanzará: versión ${ver}` : 'Lanzará: —';
+    }
+
+    function openVersionPicker(versions) {
+      $('#versionPicker').hidden = false;
+      const list = $('#vpList');
+      list.innerHTML = '';
+      versions.forEach((v) => {
+        const el = document.createElement('button');
+        el.className = 'vp-item';
+        const title = document.createElement('div');
+        title.className = 'dg-title mono';
+        title.textContent = v.folder;
+        const meta = document.createElement('div');
+        meta.className = 'dg-meta';
+        meta.textContent = `Versión ${v.version || 'desconocida'} · ${fmtSize(v.sizeMB)}${v.active ? ' · Activa' : ''}`;
+        const info = document.createElement('div');
+        info.className = 'dg-info';
+        info.append(title, meta);
+        el.append(info);
+        el.addEventListener('click', () => {
+          closeVersionPicker();
+          doLaunchVersion(v);
+        });
+        list.appendChild(el);
+      });
+    }
+
+    function closeVersionPicker() {
+      $('#versionPicker').hidden = true;
+    }
+
+    async function launchClientWithPicker() {
+      await refreshVersionsCache();
+      if (cachedVersions.length > 1) {
+        openVersionPicker(cachedVersions);
+        return;
+      }
+      launchClient(); // una sola versión: lanzar directo
+    }
+
+    async function doLaunchVersion(v) {
+      toast('info', IS_DEMO ? '(Demo) Abriendo Roblox…' : `Abriendo Roblox ${v.version || v.folder}…`);
+      const res = await safe(() => API.launchClientVersion(v.folder));
+      if (!res) return;
+      if (res.ok || res._demo) {
+        toast('ok', `Roblox ${res.version || v.version || ''} se está abriendo. ¡A jugar!`);
+        refreshRobloxRunning();
+      } else if (res.reason === 'not-version') {
+        toast('error', 'Esa carpeta ya no tiene RobloxPlayerBeta.exe.');
+      } else {
+        toast('error', 'No se pudo abrir esa versión.');
+      }
+    }
+
+    // ---- Pestaña Downgrade ----
+
+    let protectState = null; // último estado de protección recibido
+
+    function fmtSize(mb) {
+      if (mb == null) return '—';
+      return mb >= 1024 ? (mb / 1024).toFixed(1) + ' GB' : mb + ' MB';
+    }
+    function fmtDate(ms) {
+      return ms ? new Date(ms).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+    }
+
+    function backupItem(b) {
+      const el = document.createElement('div');
+      el.className = 'dg-item';
+      const info = document.createElement('div');
+      info.className = 'dg-info';
+      const title = document.createElement('div');
+      title.className = 'dg-title mono';
+      title.textContent = b.folder; // textContent: el nombre viene del disco
+      const meta = document.createElement('div');
+      meta.className = 'dg-meta';
+      meta.textContent = `${b.version ? 'Versión ' + b.version + ' · ' : ''}${fmtDate(b.created)} · ${fmtSize(b.sizeMB)}`;
+      info.append(title, meta);
+      const actions = document.createElement('div');
+      actions.className = 'dg-actions';
+      const restore = document.createElement('button');
+      restore.className = 'btn btn--primary btn--sm';
+      restore.textContent = '↺ Restaurar';
+      restore.title = 'Copia esta versión sobre la activa (downgrade). Cierra Roblox antes.';
+      restore.addEventListener('click', () => doRestore(b.folder));
+      const del = document.createElement('button');
+      del.className = 'btn btn--ghost btn--sm';
+      del.textContent = '🗑 Eliminar';
+      del.addEventListener('click', () => doDeleteBackup(b.folder));
+      actions.append(restore, del);
+      el.append(info, actions);
+      return el;
+    }
+
+    function versionItem(v) {
+      const el = document.createElement('div');
+      el.className = 'dg-item';
+      const info = document.createElement('div');
+      info.className = 'dg-info';
+      const title = document.createElement('div');
+      title.className = 'dg-title mono';
+      title.textContent = v.folder;
+      const meta = document.createElement('div');
+      meta.className = 'dg-meta';
+      meta.textContent = `Versión ${v.version || 'desconocida'} · ${fmtSize(v.sizeMB)} · ${fmtDate(v.mtimeMs)}`;
+      const actions = document.createElement('div');
+      actions.className = 'dg-actions';
+      const open = document.createElement('button');
+      open.className = 'btn btn--ghost btn--sm';
+      open.textContent = '📂 Abrir';
+      open.addEventListener('click', async () => {
+        const res = await safe(() => API.openVersionsFolder());
+        if (res === null) return;
+        if (IS_DEMO || res === true || res.ok) toast('ok', IS_DEMO ? '(Demo) Carpeta de versiones' : 'Carpeta de versiones abierta.');
+      });
+      if (!v.active) {
+        const actBtn = document.createElement('button');
+        actBtn.className = 'btn btn--primary btn--sm';
+        actBtn.textContent = 'Activar';
+        actBtn.title = 'Copia esta versión sobre la activa (downgrade). Cierra Roblox antes.';
+        actBtn.addEventListener('click', () => doActivateVersion(v.folder));
+        actions.appendChild(actBtn);
+      }
+      actions.appendChild(open);
+      if (v.active) {
+        const badge = document.createElement('span');
+        badge.className = 'badge badge--ok';
+        badge.textContent = 'Activa';
+        actions.appendChild(badge);
+      }
+      info.append(title, meta);
+      el.append(info, actions);
+      return el;
+    }
+
+    function renderBackups(list) {
+      const container = $('#backupsList');
+      const empty = $('#backupsEmpty');
+      container.innerHTML = '';
+      empty.hidden = list.length > 0;
+      list.forEach((b) => container.appendChild(backupItem(b)));
+    }
+
+    function renderInstalledVersions(list) {
+      const container = $('#versionsList');
+      const empty = $('#versionsEmpty');
+      container.innerHTML = '';
+      empty.hidden = list.length > 0;
+      list.forEach((v) => container.appendChild(versionItem(v)));
+    }
+
+    function renderProtection(p) {
+      const btn = $('#protectToggleBtn');
+      const badge = $('#protectBadge');
+      const desc = $('#protectDesc');
+      if (!p || !p.folder) {
+        badge.className = 'badge badge--neutral';
+        badge.textContent = 'Sin Roblox';
+        desc.textContent = 'No hay una instalación activa que proteger.';
+        btn.disabled = true;
+        btn.textContent = '—';
+        return;
+      }
+      btn.disabled = false;
+      protectState = p; // guardamos el estado real para el toggle
+      const on = !!p.protected;
+      badge.className = `badge ${on ? 'badge--ok' : 'badge--neutral'}`;
+      badge.textContent = on ? 'Protegida' : 'Sin proteger';
+      desc.textContent = `Carpeta activa: ${p.folder}`;
+      btn.className = `btn btn--sm ${on ? 'btn--ghost' : 'btn--primary'}`;
+      btn.textContent = on ? 'Desproteger' : 'Proteger ahora';
+    }
+
+    async function refreshDowngrade() {
+      const [versions, backups, protection] = await Promise.all([
+        safe(() => API.listInstalledVersions()),
+        safe(() => API.listBackups()),
+        safe(() => API.getProtection()),
+      ]);
+      if (versions) {
+        cachedVersions = versions;
+        renderInstalledVersions(versions);
+        updateLaunchLine();
+      }
+      if (backups) renderBackups(backups);
+      if (protection) renderProtection(protection);
+    }
+
+    async function doCreateBackup() {
+      const btn = $('#createBackupBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Guardando…';
+      toast('info', 'Guardando respaldo de la versión actual (unos segundos)…');
+      const res = await safe(() => API.createBackup());
+      btn.disabled = false;
+      btn.textContent = '⬇ Guardar respaldo';
+      if (!res) return;
+      if (res.ok || res._demo) {
+        toast('ok', `Respaldo guardado: versión ${res.version || res.folder} (${fmtSize(res.sizeMB)}).`);
+      } else if (res.reason === 'not-installed') {
+        toast('error', 'Roblox no está instalado, no hay nada que respaldar.');
+      } else {
+        toast('error', 'No se pudo guardar el respaldo.');
+      }
+      refreshDowngrade();
+    }
+
+    async function doRestore(folder) {
+      if (!confirm(`¿Restaurar el respaldo "${folder}"?\n\nSe copiará sobre tu versión actual (downgrade).\nRoblox debe estar cerrado.`)) return;
+      toast('info', 'Restaurando respaldo…');
+      const res = await safe(() => API.restoreBackup(folder));
+      if (!res) return;
+      if (res.ok || res._demo) {
+        toast('ok', `¡Restaurado! Versión ${res.version || folder} activa.`);
+      } else if (res.reason === 'roblox-running') {
+        toast('error', 'Cierra Roblox antes de restaurar.');
+      } else if (res.reason === 'missing-backup') {
+        toast('error', 'Ese respaldo ya no existe.');
+      } else {
+        toast('error', 'No se pudo restaurar el respaldo.');
+      }
+      refreshDowngrade();
+    }
+
+    async function doDeleteBackup(folder) {
+      if (!confirm(`¿Eliminar el respaldo "${folder}"? No se puede deshacer.`)) return;
+      const res = await safe(() => API.deleteBackup(folder));
+      if (res && (res.ok || res._demo)) {
+        toast('ok', 'Respaldo eliminado.');
+      } else {
+        toast('error', 'No se pudo eliminar el respaldo.');
+      }
+      refreshDowngrade();
+    }
+
+    async function doToggleProtection() {
+      const btn = $('#protectToggleBtn');
+      const on = !(protectState && protectState.protected);
+      if (on && !confirm('Al proteger, Roblox no podrá actualizarse solo.\n¿Activar la protección contra actualización?')) return;
+      if (!on && !confirm('Al desproteger, Roblox volverá a auto-actualizarse.\n¿Desactivar la protección?')) return;
+      btn.disabled = true;
+      toast('info', on ? 'Protegiendo…' : 'Desprotegiendo…');
+      const res = await safe(() => API.setProtection(on));
+      btn.disabled = false;
+      if (!res) return;
+      if (res.ok || res._demo) {
+        toast('ok', on ? 'Protección activada: la versión no se actualizará sola.' : 'Protección desactivada: Roblox se actualizará con normalidad.');
+      } else if (res.reason === 'roblox-running') {
+        toast('error', 'Cierra Roblox antes de cambiar la protección.');
+      } else {
+        toast('error', 'No se pudo cambiar la protección.');
+      }
+      refreshDowngrade();
+    }
+
+    let installBusy = false;
+    async function doInstallVersion() {
+      const input = $('#versionHashInput');
+      const btn = $('#installVersionBtn');
+      const status = $('#dlStatus');
+      if (installBusy) return;
+      const raw = input.value.trim();
+      const hash = raw.replace(/^version[-_]/i, '');
+      if (!/^[0-9a-f]{16}$/i.test(hash)) {
+        toast('error', 'Hash no válido. Debe ser 16 caracteres hex (ej. 145f189a6a974303).');
+        return;
+      }
+      installBusy = true;
+      btn.disabled = true;
+      status.textContent = 'Consultando el manifest oficial…';
+      const res = await safe(() => API.installVersion(hash));
+      installBusy = false;
+      btn.disabled = false;
+      if (!res) { status.textContent = 'Error inesperado.'; return; }
+      if (res.ok || res._demo) {
+        status.textContent = `Instalada: ${res.folder} · versión ${res.version || 'desconocida'}`;
+        toast('ok', `¡Versión ${res.folder} instalada! Actívala para usarla.`);
+        input.value = '';
+        refreshDowngrade();
+      } else if (res.reason === 'invalid-hash') {
+        status.textContent = 'Hash no válido.';
+        toast('error', 'Hash no válido.');
+      } else if (res.reason === 'no-manifest') {
+        status.textContent = 'Esa versión no tiene manifest (¿existe?).';
+        toast('error', 'El CDN no tiene esa versión.');
+      } else if (res.reason === 'download-failed') {
+        status.textContent = `Falló el paquete ${res.index}/${res.total} (${res.package}).`;
+        toast('error', 'No se pudo descargar un paquete (¿internet?).');
+      } else if (res.reason === 'extract-failed') {
+        status.textContent = `No se pudo descomprimir ${res.package}.`;
+        toast('error', 'Error al descomprimir un paquete.');
+      } else if (res.reason === 'install-failed') {
+        status.textContent = 'Error durante la instalación.';
+        toast('error', 'Ocurrió un error al instalar.');
+      } else {
+        status.textContent = 'No se pudo completar la instalación.';
+        toast('error', 'No se pudo instalar esa versión.');
+      }
+    }
+
+    async function doActivateVersion(folder) {
+      const hash = String(folder).replace(/^version[-_]/i, '');
+      if (!confirm(`¿Activar "${folder}"?\n\nSe copiará sobre tu versión actual (downgrade).\nRoblox debe estar cerrado.`)) return;
+      toast('info', 'Activando versión…');
+      const res = await safe(() => API.activateVersion(hash));
+      if (!res) return;
+      if (res.ok || res._demo) {
+        toast('ok', `Versión ${res.version || folder} activa. Ahora protégela para que no se actualice.`);
+      } else if (res.reason === 'roblox-running') {
+        toast('error', 'Cierra Roblox antes de activar.');
+      } else if (res.reason === 'not-version') {
+        toast('error', 'Esa carpeta no tiene RobloxPlayerBeta.exe.');
+      } else if (res.reason === 'activate-failed') {
+        toast('error', 'No se pudo copiar la versión (¿algún archivo en uso?).');
+      } else {
+        toast('error', 'No se pudo activar la versión.');
+      }
+      refreshDowngrade();
+    }
+
+    async function doImportVersion() {
+      toast('info', 'Elige la carpeta version-… de Roblox que quieras importar.');
+      const res = await safe(() => API.importVersion());
+      if (!res) return;
+      if (res.canceled) { toast('info', 'Importación cancelada.'); return; }
+      if (res.ok || res._demo) {
+        toast('ok', `¡Importada! ${res.folder} · versión ${res.version || 'desconocida'}.`);
+      } else if (res.reason === 'not-version-folder') {
+        toast('error', `"${res.folder}" no parece una carpeta de versión (debe llamarse version-…).`);
+      } else {
+        toast('error', 'No se pudo importar la carpeta.');
+      }
+      refreshDowngrade();
+    }
+
+    // ---- Configuración ----
+
+    function bindSettings() {
+      $('#autoCheckToggle').checked = settings.autoCheck;
+      $('#toastsToggle').checked = settings.toasts;
+
+      $('#autoCheckToggle').addEventListener('change', (e) => {
+        settings.autoCheck = e.target.checked;
+        saveSettings();
+        toast('info', settings.autoCheck ? 'Se comprobará la versión al iniciar.' : 'Comprobación al iniciar desactivada.');
+      });
+      $('#toastsToggle').addEventListener('change', (e) => {
+        settings.toasts = e.target.checked;
+        saveSettings();
+        if (settings.toasts) toast('info', 'Notificaciones activadas.');
+      });
+    }
+
+    // ---- Inicialización ----
+
+    // ---- Auto-actualización de la app (banner) ----
+
+    let appUpdateStatus = null;
+
+    function renderAppUpdateBanner() {
+      const banner = $('#updateBanner');
+      const text = $('#updateBannerText');
+      const action = $('#updateActionBtn');
+      const wrap = $('#updateProgressWrap');
+      const bar = $('#updateProgressBar');
+      if (!appUpdateStatus || appUpdateStatus.stage === 'uptodate' || appUpdateStatus.stage === 'error' || appUpdateStatus.stage === 'checking') {
+        banner.hidden = true;
+        return;
+      }
+      banner.hidden = false;
+      wrap.hidden = appUpdateStatus.stage !== 'downloading';
+      if (appUpdateStatus.stage === 'available') {
+        text.textContent = `Hay una nueva versión de Roblox Launcher (v${appUpdateStatus.version}).`;
+        action.textContent = 'Actualizar ahora';
+        action.disabled = false;
+        action.onclick = async () => {
+          action.disabled = true;
+          action.textContent = 'Descargando…';
+          const res = await safe(() => API.appUpdate.download());
+          if (!res || !res.ok) {
+            // Si la descarga no llegó a empezar (sin red, canal sin configurar),
+            // se vuelve a dejar el botón listo para reintentar.
+            action.disabled = false;
+            action.textContent = 'Actualizar ahora';
+          }
+        };
+      } else if (appUpdateStatus.stage === 'downloading') {
+        bar.style.width = `${appUpdateStatus.percent || 0}%`;
+        text.textContent = `Descargando la actualización… ${appUpdateStatus.percent || 0}%`;
+        action.textContent = 'Descargando…';
+        action.disabled = true;
+      } else if (appUpdateStatus.stage === 'downloaded') {
+        text.textContent = 'Actualización lista. Se instalará y la app se reiniciará sola.';
+        action.textContent = 'Reiniciar e instalar';
+        action.disabled = false;
+        action.onclick = async () => {
+          action.disabled = true;
+          action.textContent = 'Reiniciando…';
+          await safe(() => API.appUpdate.install());
+        };
+      }
+    }
+
+    function bindAppUpdates() {
+      const upd = API.appUpdate;
+      if (!upd) return;
+      $('#checkAppUpdateBtn').addEventListener('click', async () => {
+        const res = await safe(() => upd.check());
+        if (!res) return;
+        if (IS_DEMO || res.dev) {
+          toast('info', '(Demo) La actualización automática funciona en la app instalada (.exe).');
+          return;
+        }
+        toast('info', 'Comprobando actualizaciones…');
+      });
+      if (upd.onStatus) {
+        upd.onStatus((data) => {
+          appUpdateStatus = data;
+          renderAppUpdateBanner();
+          if (data.stage === 'downloaded') toast('ok', 'Actualización lista. La app se reiniciará sola.');
+          else if (data.stage === 'uptodate') toast('info', 'Estás al día con la última versión.');
+          else if (data.stage === 'error') toast('error', 'No se pudo comprobar la actualización: ' + (data.message || 'sin conexión'));
+        });
+      }
+      // Versión actual de la app en el pie.
+      if (upd.currentVersion) {
+        upd.currentVersion().then((v) => {
+          if (v && v.version && !IS_DEMO) $('#aboutText').textContent = `Roblox Launcher v${v.version} · Hecho con Electron`;
+        }).catch(() => {});
+      }
+    }
+
+    function init() {
+      if (IS_DEMO) {
+        $('#demoBanner').hidden = false;
+        $('#footMode').textContent = 'Modo demo · usa "npm start" para la app completa';
+      } else {
+        // Sin texto en el pie: la barra inferior queda limpia.
+        $('#footMode').textContent = '';
+      }
+
+      $$('.tab').forEach((t) => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+      $('#goPlayTabBtn').addEventListener('click', () => switchTab('play'));
+
+      $('#playBigBtn').addEventListener('click', launchClientWithPicker);
+      $('#vpCancelBtn').addEventListener('click', closeVersionPicker);
+
+      // Cerrar el selector con Escape o haciendo clic fuera de la caja.
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !$('#versionPicker').hidden) closeVersionPicker();
+      });
+      $('#versionPicker').addEventListener('click', (e) => {
+        if (e.target === $('#versionPicker')) closeVersionPicker();
+      });
+      $('#refreshBtn').addEventListener('click', () => checkVersion());
+      $('#checkBtn').addEventListener('click', () => checkVersion());
+      $('#clearRecentBtn').addEventListener('click', () => {
+        saveHistory([]);
+        renderHistory();
+        toast('info', 'Historial borrado.');
+      });
+      $('#clearHistoryBtn').addEventListener('click', () => {
+        saveHistory([]);
+        renderHistory();
+        toast('info', 'Historial borrado.');
+      });
+      $$('[data-action]').forEach((b) => b.addEventListener('click', () => runQuickAction(b.dataset.action)));
+
+      const input = $('#placeIdInput');
+      const playBtn = $('#playGameBtn');
+      const updatePlayBtn = () => {
+        const valid = /^[0-9]{5,}$/.test(input.value.trim());
+        playBtn.disabled = !valid;
+      };
+      input.addEventListener('input', updatePlayBtn);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !playBtn.disabled) playGame(input.value);
+      });
+      playBtn.addEventListener('click', () => playGame(input.value));
+      $$('.chip').forEach((c) => c.addEventListener('click', () => playGame(c.dataset.id)));
+
+      bindSettings();
+      renderHistory();
+
+      // ---- Versión que se lanzará (línea bajo el botón Jugar) ----
+      refreshVersionsCache().then(() => updateLaunchLine());
+
+      // ---- Pestaña Downgrade ----
+      $('#createBackupBtn').addEventListener('click', doCreateBackup);
+      $('#backupsFolderBtn').addEventListener('click', async () => {
+        const res = await safe(() => API.openBackupsFolder());
+        if (res === null) return;
+        if (IS_DEMO || res === true || res.ok) toast('ok', IS_DEMO ? '(Demo) Carpeta de respaldos' : 'Carpeta de respaldos abierta.');
+        else toast('warn', 'No se pudo abrir la carpeta de respaldos.');
+      });
+      $('#protectToggleBtn').addEventListener('click', doToggleProtection);
+      $('#importVersionBtn').addEventListener('click', doImportVersion);
+      $('#installVersionBtn').addEventListener('click', doInstallVersion);
+      const hashInput = $('#versionHashInput');
+      const hashBtn = $('#installVersionBtn');
+      const updateHashBtn = () => {
+        hashBtn.disabled = !/^[0-9a-f]{16}$/i.test(hashInput.value.trim().replace(/^version[-_]/i, ''));
+      };
+      hashInput.addEventListener('input', updateHashBtn);
+      hashInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !hashBtn.disabled) doInstallVersion();
+      });
+      // Progreso real de la instalación (solo en la app real).
+      if (window.robloxAPI && window.robloxAPI.onVersionInstallProgress) {
+        window.robloxAPI.onVersionInstallProgress((p) => {
+          if (!p) return;
+          const status = $('#dlStatus');
+          if (p.stage === 'manifest') status.textContent = 'Consultando el manifest oficial…';
+          else if (p.stage === 'package') {
+            status.textContent = `Descargando e instalando paquete ${p.index} de ${p.total} (${p.name})…`;
+          }
+        });
+      }
+
+      // ---- Auto-actualización de la app ----
+      bindAppUpdates();
+
+      // ---- Botón Cerrar Roblox (solo si está abierto) ----
+      refreshRobloxRunning();
+      setInterval(refreshRobloxRunning, 4000);
+
+      // ---- Controles de ventana ----
+      const wc = window.robloxAPI ? window.robloxAPI.windowControls : null;
+      const demoWarn = (msg) => { if (!wc) toast('info', `(Demo) ${msg}`); };
+      $('#winMinBtn').addEventListener('click', () => {
+        if (wc) wc.minimize();
+        else demoWarn('Minimizar');
+      });
+      $('#winMaxBtn').addEventListener('click', () => {
+        if (wc) wc.toggleMaximize();
+        else demoWarn('Maximizar');
+      });
+      $('#winCloseBtn').addEventListener('click', () => {
+        if (wc) wc.close();
+        else demoWarn('Cerrar');
+      });
+      if (wc) {
+        const setMaxIcon = (isMax) => {
+          $('#winMaxBtn').classList.toggle('is-max', !!isMax);
+          $('#winMaxBtn').title = isMax ? 'Restaurar' : 'Maximizar';
+          $('#winMaxBtn').setAttribute('aria-label', isMax ? 'Restaurar' : 'Maximizar');
+        };
+        wc.isMaximized().then(setMaxIcon).catch(() => {});
+        wc.onMaximizeChange(setMaxIcon);
+      }
+
+      if (settings.autoCheck) checkVersion();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
