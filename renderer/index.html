@@ -677,6 +677,48 @@
     .dg-head-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .dg-head-row h3 { margin-bottom: 3px; }
     .dg-head-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+    /* ---- FastFlags ---- */
+    .ff-status {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      border: 1px solid var(--border);
+      background: var(--bg-soft);
+      color: var(--muted);
+    }
+    .ff-status.ok { color: var(--green); border-color: rgba(46, 204, 113, 0.35); }
+    .ff-status.warn { color: var(--amber); border-color: rgba(245, 181, 10, 0.4); }
+    .ff-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      transition: all 0.2s ease;
+    }
+    .ff-item:hover { border-color: var(--border-strong); background: var(--card-2); }
+    .ff-info { flex: 1; min-width: 0; }
+    .ff-title { font-size: 13.5px; font-weight: 700; }
+    .ff-hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .ff-input {
+      flex: 0 1 90px;
+      min-width: 60px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border-strong);
+      background: var(--bg-soft);
+      color: var(--text);
+      font-size: 13px;
+      text-align: center;
+      outline: none;
+    }
+    .ff-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(226, 35, 26, 0.18); }
+    .ff-active { border-color: rgba(226, 35, 26, 0.45); background: rgba(226, 35, 26, 0.06); }
+    .ff-active .ff-title { color: var(--accent-2); }
+
     .dg-item {
       display: flex;
       align-items: center;
@@ -886,6 +928,7 @@
     <button class="tab" data-tab="play" role="tab" aria-selected="false">Jugar</button>
     <button class="tab" data-tab="version" role="tab" aria-selected="false">Versión</button>
     <button class="tab" data-tab="downgrade" role="tab" aria-selected="false">Downgrade</button>
+    <button class="tab" data-tab="fastflags" role="tab" aria-selected="false">FastFlags</button>
     <button class="tab" data-tab="settings" role="tab" aria-selected="false">Ajustes</button>
   </nav>
   </div>
@@ -1084,6 +1127,48 @@
       </div>
     </section>
 
+    <!-- ======= Pestaña: FastFlags ======= -->
+    <section id="panel-fastflags" class="panel" data-panel="fastflags">
+      <div class="card">
+        <div class="dg-head-row">
+          <div>
+            <h2>FastFlags · optimización</h2>
+            <p class="muted">Flags que lee Roblox al arrancar para mejorar rendimiento, gráficos y red.
+              Se guardan en la carpeta de tu versión activa (<span class="mono">ClientAppSettings.json</span>).
+              <strong>Reinicia Roblox para que surtan efecto.</strong></p>
+          </div>
+        </div>
+
+        <div class="ff-status" id="ffStatus"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h3>Rendimiento</h3></div>
+        <div id="ffPerf" class="game-list"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h3>Gráficos y efectos</h3></div>
+        <div id="ffFx" class="game-list"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><h3>Red y estabilidad</h3></div>
+        <div id="ffNet" class="game-list"></div>
+      </div>
+
+      <div class="card dg-head-row" style="margin-top:22px;">
+        <div>
+          <h3>Acciones</h3>
+          <p class="muted" id="ffActionsHint">Aplicá los cambios o limpiá todo.</p>
+        </div>
+        <div class="dg-head-actions">
+          <button id="ffClearBtn" class="btn btn--danger btn--sm">Limpiar todos</button>
+          <button id="ffApplyBtn" class="btn btn--primary btn--sm">Guardar cambios</button>
+        </div>
+      </div>
+    </section>
+
     <!-- ======= Pestaña: Ajustes ======= -->
     <section id="panel-settings" class="panel" data-panel="settings">
       <div class="card">
@@ -1277,6 +1362,29 @@
         await sleep(1500);
         return { ok: true, folder: 'version-d584fb6c717a43d9', version: '0.732.23.7321040', hash, _demo: true };
       },
+      // ---- FastFlags (demo: estado en memoria) ----
+      _demoFastFlags: {},
+      fastFlags: {
+        get: async () => {
+          await sleep(300);
+          return { ok: true, folder: 'version-d584fb6c717a43d9', flags: { ...this._demoFastFlags }, _demo: true };
+        },
+        set: async (changes) => {
+          await sleep(400);
+          const next = { ...this._demoFastFlags };
+          for (const [k, v] of Object.entries(changes || {})) {
+            if (v === null || v === undefined || v === '') delete next[k];
+            else next[k] = v;
+          }
+          this._demoFastFlags = next;
+          return { ok: true, folder: 'version-d584fb6c717a43d9', flags: { ...next }, _demo: true };
+        },
+        clear: async () => {
+          await sleep(300);
+          this._demoFastFlags = {};
+          return { ok: true, folder: 'version-d584fb6c717a43d9', flags: {}, _demo: true };
+        },
+      },
       // ---- Auto-actualización de la app (demo: simula el flujo) ----
       appUpdate: {
         currentVersion: async () => ({ version: '1.0.0' }),
@@ -1356,6 +1464,7 @@
       });
       $$('.panel').forEach((p) => p.classList.toggle('active', p.dataset.panel === name));
       if (name === 'downgrade') refreshDowngrade(); // datos frescos al abrir
+      if (name === 'fastflags') refreshFastFlags(); // datos frescos al abrir
     }
 
     // ---- Estado de versión en la UI ----
@@ -2052,6 +2161,143 @@
       refreshDowngrade();
     }
 
+    // ---- FastFlags (optimización) ----
+
+    const FF_PRESETS = {
+      performance: [
+        { id: 'fpsUnlock', key: 'DFIntTaskSchedulerTargetFps', type: 'int', label: 'Desbloquear FPS', hint: 'Quita el límite de 60 FPS. Valor en FPS.', default: 240 },
+        { id: 'vulkan', key: 'FFlagDebugGraphicsPreferVulkan', type: 'bool', label: 'Usar Vulkan', hint: 'Renderizador Vulkan (mejor rendimiento en varias GPUs).' },
+        { id: 'renderTime', key: 'FIntRenderFrameTimePercentage', type: 'int', label: 'Frame time de render', hint: 'Porcentaje del frame dedicado a renderizar (90 por defecto).', default: 90 },
+        { id: 'gpuParticles', key: 'FFlagGraphicsDisableGpuParticles', type: 'bool', label: 'Desactivar partículas GPU', hint: 'Reduce carga de partículas pesadas.' },
+      ],
+      fx: [
+        { id: 'postFx', key: 'FFlagDisablePostFx', type: 'bool', label: 'Desactivar PostFX', hint: 'Quita blur y bloom para más FPS.' },
+        { id: 'shadows', key: 'FFlagDebugGraphicsDisableShadowMap', type: 'bool', label: 'Desactivar sombras', hint: 'Desactiva el mapa de sombras.' },
+      ],
+      network: [
+        { id: 'mtu', key: 'DFIntConnectionMTU', type: 'int', label: 'MTU de red', hint: 'Tamaño de paquete de red (1400 por defecto).', default: 1400 },
+      ],
+    };
+
+    // Estado editable (id -> valor actual o undefined si no está activo)
+    const ffState = {};
+
+    function ffContainerFor(cat) {
+      return cat === 'performance' ? $('#ffPerf') : cat === 'fx' ? $('#ffFx') : $('#ffNet');
+    }
+
+    function ffRenderItem(cat, preset) {
+      const box = ffContainerFor(cat);
+      const wrap = document.createElement('div');
+      wrap.className = 'ff-item';
+      wrap.id = 'ffitem-' + preset.id;
+      const active = ffState[preset.id] !== undefined;
+
+      const info = document.createElement('div');
+      info.className = 'ff-info';
+      info.innerHTML = `<div class="ff-title">${preset.label}</div><div class="ff-hint">${preset.hint}</div>`;
+
+      let control;
+      if (preset.type === 'bool') {
+        control = document.createElement('label');
+        control.className = 'switch';
+        control.innerHTML = `<input type="checkbox" id="ff-${preset.id}" ${active ? 'checked' : ''} /><span class="slider"></span>`;
+        control.querySelector('input').addEventListener('change', (e) => {
+          if (e.target.checked) ffState[preset.id] = true;
+          else delete ffState[preset.id];
+          ffRefreshActiveStates();
+        });
+      } else {
+        control = document.createElement('input');
+        control.type = 'number';
+        control.className = 'ff-input';
+        control.id = 'ff-' + preset.id;
+        control.min = 1;
+        control.value = active ? String(ffState[preset.id]) : String(preset.default || '');
+        control.addEventListener('input', (e) => {
+          const v = e.target.value.trim();
+          if (v === '') delete ffState[preset.id];
+          else ffState[preset.id] = Number(v);
+          ffRefreshActiveStates();
+        });
+      }
+
+      wrap.appendChild(info);
+      wrap.appendChild(control);
+      box.appendChild(wrap);
+    }
+
+    function ffRefreshActiveStates() {
+      const all = [].concat(FF_PRESETS.performance, FF_PRESETS.fx, FF_PRESETS.network);
+      all.forEach((p) => {
+        const item = document.getElementById('ffitem-' + p.id);
+        if (item) item.classList.toggle('ff-active', ffState[p.id] !== undefined);
+      });
+    }
+
+    async function refreshFastFlags() {
+      const res = await safe(() => API.fastFlags.get());
+      if (!res) return;
+      // Limpiar contenedores
+      ['#ffPerf', '#ffFx', '#ffNet'].forEach((id) => { $(id).innerHTML = ''; });
+      const status = $('#ffStatus');
+      if (res.ok === false) {
+        status.textContent = 'Roblox no está instalado. Instala el cliente para usar FastFlags.';
+        status.className = 'ff-status warn';
+        return;
+      }
+      Object.keys(ffState).forEach((k) => delete ffState[k]);
+      const flags = res.flags || {};
+      const all = [].concat(FF_PRESETS.performance, FF_PRESETS.fx, FF_PRESETS.network);
+      all.forEach((p) => {
+        if (flags[p.key] !== undefined) ffState[p.id] = flags[p.key];
+      });
+      Object.keys(FF_PRESETS).forEach((cat) => {
+        FF_PRESETS[cat].forEach((p) => ffRenderItem(cat, p));
+      });
+      ffRefreshActiveStates();
+      const count = Object.keys(flags).length;
+      status.textContent = count > 0
+        ? `Versión activa: ${res.folder} · ${count} flag(s) aplicados. Reiniciá Roblox para que surtan efecto.`
+        : `Versión activa: ${res.folder} · Sin flags aplicados todavía.`;
+      status.className = count > 0 ? 'ff-status ok' : 'ff-status';
+    }
+
+    function ffCollectChanges() {
+      const changes = {};
+      const all = [].concat(FF_PRESETS.performance, FF_PRESETS.fx, FF_PRESETS.network);
+      all.forEach((p) => {
+        if (ffState[p.id] !== undefined) changes[p.key] = ffState[p.id];
+        else changes[p.key] = null; // eliminar del archivo
+      });
+      return changes;
+    }
+
+    async function applyFastFlags() {
+      const res = await safe(() => API.fastFlags.set(ffCollectChanges()));
+      if (!res) return;
+      if (res.ok) {
+        toast('ok', 'FastFlags guardados. Reiniciá Roblox para aplicarlos.');
+        refreshFastFlags();
+      } else if (res.reason === 'not-installed') {
+        toast('error', 'Roblox no está instalado.');
+      } else {
+        toast('error', 'No se pudo guardar: ' + (res.error || res.reason || 'error desconocido'));
+      }
+    }
+
+    async function clearFastFlags() {
+      if (!confirm('¿Borrar todos los FastFlags? Se elimina ClientAppSettings.json de tu versión activa.')) return;
+      const res = await safe(() => API.fastFlags.clear());
+      if (!res) return;
+      if (res.ok) {
+        toast('ok', 'FastFlags eliminados.');
+        refreshFastFlags();
+      } else {
+        toast('error', 'No se pudo limpiar: ' + (res.error || res.reason || 'error desconocido'));
+      }
+    }
+
     // ---- Configuración ----
 
     function bindSettings() {
@@ -2263,6 +2509,11 @@
           }
         });
       }
+
+      // ---- Pestaña FastFlags ----
+      $('#ffApplyBtn').addEventListener('click', applyFastFlags);
+      $('#ffClearBtn').addEventListener('click', clearFastFlags);
+      refreshFastFlags();
 
       // ---- Auto-actualización de la app ----
       bindAppUpdates();

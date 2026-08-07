@@ -843,6 +843,124 @@ async function setProtection(enabled) {
   return { ok: true, protected: enabled, ...(await getProtectionState()) };
 }
 
+// ---- FastFlags (optimización del cliente de Roblox) -------------------------------
+// Roblox lee un archivo ClientAppSettings.json desde la carpeta de la versión activa
+// al arrancar. Aquí se ofrece un conjunto de flags conocidos por la comunidad para
+// mejorar rendimiento, gráficos y red. Cada flag se aplica de inmediato al abrir el
+// cliente; para que surta efecto hay que reiniciar Roblox.
+
+// Presets curados por categoría. `key` es el nombre real del flag que lee Roblox.
+const FASTFLAG_PRESETS = {
+  fpsUnlock: {
+    category: 'performance',
+    key: 'DFIntTaskSchedulerTargetFps',
+    type: 'int',
+    label: 'Desbloquear FPS',
+    hint: 'Quita el límite de 60 FPS (valor en FPS).',
+    default: 240,
+  },
+  vulkan: {
+    category: 'performance',
+    key: 'FFlagDebugGraphicsPreferVulkan',
+    type: 'bool',
+    label: 'Usar Vulkan',
+    hint: 'Cambia el renderizador a Vulkan (mejor rendimiento en varias GPUs).',
+  },
+  renderTime: {
+    category: 'performance',
+    key: 'FIntRenderFrameTimePercentage',
+    type: 'int',
+    label: 'Frame time de render',
+    hint: 'Porcentaje del frame dedicado a renderizar (90 por defecto).',
+    default: 90,
+  },
+  gpuParticles: {
+    category: 'performance',
+    key: 'FFlagGraphicsDisableGpuParticles',
+    type: 'bool',
+    label: 'Desactivar partículas GPU',
+    hint: 'Reduce carga de partículas pesadas.',
+  },
+  postFx: {
+    category: 'effects',
+    key: 'FFlagDisablePostFx',
+    type: 'bool',
+    label: 'Desactivar PostFX',
+    hint: 'Quita efectos de post-procesado (blur, bloom) para más FPS.',
+  },
+  shadows: {
+    category: 'effects',
+    key: 'FFlagDebugGraphicsDisableShadowMap',
+    type: 'bool',
+    label: 'Desactivar sombras',
+    hint: 'Desactiva el mapa de sombras (mejora FPS en PC baja).',
+  },
+  mtu: {
+    category: 'network',
+    key: 'DFIntConnectionMTU',
+    type: 'int',
+    label: 'MTU de red',
+    hint: 'Tamaño de paquete de red (1400 por defecto).',
+    default: 1400,
+  },
+};
+
+function fastFlagsFilePath(folder) {
+  return path.join(versionsDir(), folder, 'ClientAppSettings.json');
+}
+
+// Lee el archivo de FastFlags de la versión activa (si existe).
+async function readFastFlags() {
+  const folder = await activeVersionFolder();
+  if (!folder) return { ok: false, reason: 'not-installed', folder: null, flags: {} };
+  const file = fastFlagsFilePath(folder);
+  let flags = {};
+  try {
+    flags = JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  } catch { /* no existe o no es JSON válido */ }
+  return { ok: true, folder, file, flags };
+}
+
+// Aplica cambios: cada clave con valor null elimina el flag; si quedan 0 flags,
+// se borra el archivo. Devuelve el estado final.
+async function writeFastFlags(changes) {
+  const folder = await activeVersionFolder();
+  if (!folder) return { ok: false, reason: 'not-installed' };
+  const file = fastFlagsFilePath(folder);
+  let flags = {};
+  try {
+    flags = JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  } catch { /* no existe aún */ }
+  for (const [key, val] of Object.entries(changes || {})) {
+    if (val === null || val === undefined || val === '') delete flags[key];
+    else flags[key] = val;
+  }
+  try {
+    if (Object.keys(flags).length === 0) {
+      await fs.promises.rm(file, { force: true }).catch(() => {});
+    } else {
+      await fs.promises.mkdir(path.dirname(file), { recursive: true });
+      await fs.promises.writeFile(file, JSON.stringify(flags, null, 2));
+    }
+  } catch (e) {
+    return { ok: false, reason: 'write-failed', error: e.message };
+  }
+  return { ok: true, folder, flags };
+}
+
+// Borra todos los flags gestionados por el launcher (deja el archivo vacío/limpio).
+async function clearFastFlags() {
+  const folder = await activeVersionFolder();
+  if (!folder) return { ok: false, reason: 'not-installed' };
+  const file = fastFlagsFilePath(folder);
+  try {
+    await fs.promises.rm(file, { force: true });
+  } catch (e) {
+    return { ok: false, reason: 'write-failed', error: e.message };
+  }
+  return { ok: true, folder, flags: {} };
+}
+
 // ---- Auto-actualización de la app ------------------------------------------------
 // Flujo estilo apps de Windows: al arrancar se consulta el canal de actualizaciones
 // (GitHub Releases por defecto); si hay una versión nueva se avisa al renderer, el
@@ -1030,6 +1148,11 @@ ipcMain.handle('protection:set', (_e, enabled) => setProtection(!!enabled));
 ipcMain.handle('version:get-installed', (_e, hash) => getVersionInstalled(hash));
 ipcMain.handle('version:install', (_e, hash) => installVersion(hash));
 ipcMain.handle('version:activate', (_e, hash) => activateVersion(hash));
+
+// ---- IPC de la pestaña FastFlags ----
+ipcMain.handle('fastflags:get', () => readFastFlags());
+ipcMain.handle('fastflags:set', (_e, changes) => writeFastFlags(changes));
+ipcMain.handle('fastflags:clear', () => clearFastFlags());
 
 // ---- IPC de auto-actualización ----
 ipcMain.handle('app:update-current-version', () => ({ version: app.getVersion() }));

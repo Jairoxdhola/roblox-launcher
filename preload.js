@@ -36,6 +36,12 @@ contextBridge.exposeInMainWorld('robloxAPI', {
   onVersionInstallProgress: (callback) => {
     ipcRenderer.on('version:install-progress', (_event, data) => callback(data));
   },
+  // FastFlags (optimización del cliente)
+  fastFlags: {
+    get: () => ipcRenderer.invoke('fastflags:get'),
+    set: (changes) => ipcRenderer.invoke('fastflags:set', changes),
+    clear: () => ipcRenderer.invoke('fastflags:clear'),
+  },
   // Auto-actualización de la app
   appUpdate: {
     currentVersion: () => ipcRenderer.invoke('app:update-current-version'),
