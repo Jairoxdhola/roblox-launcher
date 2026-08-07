@@ -10,7 +10,7 @@
     "smoke": "electron . --smoke",
     "dist": "electron-builder --win",
     "dist:portable": "electron-builder --win portable",
-    "publish": "electron-builder --win --publish always"
+    "publish": "electron-builder --win && node scripts/publish.js"
   },
   "build": {
     "appId": "com.robloxlauncher.app",

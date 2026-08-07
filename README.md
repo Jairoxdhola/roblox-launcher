@@ -67,11 +67,14 @@ La app usa `electron-updater` con **GitHub Releases**: al abrirla comprueba si h
 1. Sube el proyecto a GitHub (repositorio `roblox-launcher`) y cambia `owner`/`repo` en el bloque `build.publish` de `package.json` por los tuyos.
 2. Cuando quieras publicar una versión nueva:
    ```bash
-   npm version patch        # sube la versión a 1.0.1
+   npm version patch        # sube la versión a 1.0.1 (crea commit + tag)
    $env:GH_TOKEN = "tu_token_de_github"   # token con permiso repo (GitHub → Settings → Developer settings → Tokens)
-   npm run publish          # compila y sube el instalador + latest.yml a GitHub Releases
+   npm run publish          # compila el instalador y publica la release (exe + blockmap + latest.yml)
+   git push origin main --tags   # sube el commit y el tag a GitHub
    ```
 3. Los amigos que tengan la app instalada verán el banner **"Hay una nueva versión…"** y al pulsarlo la app se actualiza sola.
+
+> ℹ️ `npm run publish` usa `scripts/publish.js` (crea la release por la API de GitHub y sube los 3 assets). No usa el `--publish` de electron-builder, que dejaba releases duplicadas en draft.
 
 > ⚠️ La primera vez, Windows SmartScreen mostrará un aviso ("Windows protegió su PC") porque el .exe no está firmado. Tu amigo debe pulsar **Más información → Ejecutar de todas formas**. Es normal en apps sin certificado de pago.
 
