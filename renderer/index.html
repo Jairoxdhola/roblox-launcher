@@ -458,6 +458,9 @@
     .muted.tiny { font-size: 12px; margin-top: 6px; }
     .muted.tiny.launch-line { margin-top: 10px; }
 
+    /* Textos de descripción/estado que el usuario no quiere ver bajo las opciones */
+    #heroSub, #launchVersionLine, #statusDesc { display: none; }
+
     /* ---- Jugar ---- */
     .play-card { margin-top: 0; }
     .play-row { display: flex; gap: 12px; margin-top: 18px; }
@@ -961,22 +964,18 @@
         <button class="quick" data-action="versions">
           <span class="quick-icon">&#128193;</span>
           <span class="quick-label">Abrir versiones</span>
-          <span class="quick-hint">Carpeta de instalación</span>
         </button>
         <button class="quick" data-action="roblox">
           <span class="quick-icon">&#128194;</span>
           <span class="quick-label">Carpeta Roblox</span>
-          <span class="quick-hint">Datos de la app</span>
         </button>
         <button class="quick" data-action="update">
           <span class="quick-icon">&#11015;</span>
           <span class="quick-label">Actualizar Roblox</span>
-          <span class="quick-hint">Instalador oficial</span>
         </button>
         <button class="quick" data-action="web">
           <span class="quick-icon">&#127760;</span>
           <span class="quick-label">Sitio web</span>
-          <span class="quick-hint">Roblox.com</span>
         </button>
         <button class="quick quick--danger" id="closeRobloxQuick" data-action="close" hidden>
           <span class="quick-icon">&#128683;</span>
@@ -997,7 +996,6 @@
     <section id="panel-play" class="panel" data-panel="play">
       <div class="card play-card">
         <h2>Jugar por ID</h2>
-        <p class="muted">Pega el ID de un juego de Roblox y lánzalo al instante con tu cliente.</p>
         <div class="play-row">
           <input id="placeIdInput" type="text" inputmode="numeric"
                  placeholder="Ej. 2753915549 · Blox Fruits" autocomplete="off" />
@@ -1095,7 +1093,7 @@
       <div class="card dg-dl">
         <div>
           <h3>Descargar versión</h3>
-          <p class="muted" id="dlStatus">Pega el hash de la versión (ej. <span class="mono">145f189a6a974303</span>).</p>
+          <p class="muted" id="dlStatus"></p>
         </div>
         <div class="dg-head-actions">
           <input id="versionHashInput" class="dg-input" type="text"
@@ -1108,7 +1106,7 @@
         <div class="dg-head-row">
           <div>
             <h3>Protección contra actualización</h3>
-            <p class="muted" id="protectDesc">…</p>
+            <p class="muted" id="protectDesc"></p>
           </div>
           <div class="dg-head-actions">
             <span id="protectBadge" class="badge badge--neutral">—</span>
@@ -1217,7 +1215,6 @@
   <div id="versionPicker" class="modal" hidden>
     <div class="modal-box" role="dialog" aria-label="Elegir versión">
       <h3>Elegir versión de Roblox</h3>
-      <p class="muted">Tienes varias versiones instaladas. ¿Cuál quieres lanzar?</p>
       <div id="vpList"></div>
       <div class="vp-cancel"><button id="vpCancelBtn" class="btn btn--ghost btn--sm">Cancelar</button></div>
     </div>
