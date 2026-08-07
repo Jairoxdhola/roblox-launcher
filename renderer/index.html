@@ -2169,13 +2169,19 @@
         { id: 'vulkan', key: 'FFlagDebugGraphicsPreferVulkan', type: 'bool', label: 'Usar Vulkan', hint: 'Renderizador Vulkan (mejor rendimiento en varias GPUs).' },
         { id: 'renderTime', key: 'FIntRenderFrameTimePercentage', type: 'int', label: 'Frame time de render', hint: 'Porcentaje del frame dedicado a renderizar (90 por defecto).', default: 90 },
         { id: 'gpuParticles', key: 'FFlagGraphicsDisableGpuParticles', type: 'bool', label: 'Desactivar partículas GPU', hint: 'Reduce carga de partículas pesadas.' },
+        { id: 'vsync', key: 'FFlagDebugGraphicsDisableVSync', type: 'bool', label: 'Desactivar VSync', hint: 'Quita el límite de refresco (más FPS, puede dar tearing).' },
+        { id: 'ribbons', key: 'FFlagDebugDisableRibbon', type: 'bool', label: 'Desactivar cintas de partículas', hint: 'Quita estelas y efectos de partículas (gran ganancia de FPS).' },
+        { id: 'instancing', key: 'FFlagDebugDisableInstancing', type: 'bool', label: 'Desactivar instancing', hint: 'Reduce el renderizado de objetos repetidos.' },
       ],
       fx: [
         { id: 'postFx', key: 'FFlagDisablePostFx', type: 'bool', label: 'Desactivar PostFX', hint: 'Quita blur y bloom para más FPS.' },
         { id: 'shadows', key: 'FFlagDebugGraphicsDisableShadowMap', type: 'bool', label: 'Desactivar sombras', hint: 'Desactiva el mapa de sombras.' },
+        { id: 'terrain', key: 'FFlagDisableTerrain', type: 'bool', label: 'Desactivar terreno', hint: 'No renderiza el terreno (máximo FPS, se ve feo).' },
+        { id: 'water', key: 'FFlagDisableWater', type: 'bool', label: 'Desactivar agua', hint: 'No renderiza el agua (máximo FPS).' },
       ],
       network: [
         { id: 'mtu', key: 'DFIntConnectionMTU', type: 'int', label: 'MTU de red', hint: 'Tamaño de paquete de red (1400 por defecto).', default: 1400 },
+        { id: 'networkOptimization', key: 'DFIntHttpConnectionLimit', type: 'int', label: 'Límite de conexiones HTTP', hint: 'Más conexiones simultáneas (puede reducir lag).', default: 8 },
       ],
     };
 

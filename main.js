@@ -881,6 +881,27 @@ const FASTFLAG_PRESETS = {
     label: 'Desactivar partículas GPU',
     hint: 'Reduce carga de partículas pesadas.',
   },
+  vsync: {
+    category: 'performance',
+    key: 'FFlagDebugGraphicsDisableVSync',
+    type: 'bool',
+    label: 'Desactivar VSync',
+    hint: 'Quita el límite de refresco (más FPS, puede dar tearing).',
+  },
+  ribbons: {
+    category: 'performance',
+    key: 'FFlagDebugDisableRibbon',
+    type: 'bool',
+    label: 'Desactivar cintas de partículas',
+    hint: 'Quita estelas y efectos de partículas (gran ganancia de FPS).',
+  },
+  instancing: {
+    category: 'performance',
+    key: 'FFlagDebugDisableInstancing',
+    type: 'bool',
+    label: 'Desactivar instancing',
+    hint: 'Reduce el renderizado de objetos repetidos.',
+  },
   postFx: {
     category: 'effects',
     key: 'FFlagDisablePostFx',
@@ -895,6 +916,20 @@ const FASTFLAG_PRESETS = {
     label: 'Desactivar sombras',
     hint: 'Desactiva el mapa de sombras (mejora FPS en PC baja).',
   },
+  terrain: {
+    category: 'effects',
+    key: 'FFlagDisableTerrain',
+    type: 'bool',
+    label: 'Desactivar terreno',
+    hint: 'No renderiza el terreno (máximo FPS, se ve feo).',
+  },
+  water: {
+    category: 'effects',
+    key: 'FFlagDisableWater',
+    type: 'bool',
+    label: 'Desactivar agua',
+    hint: 'No renderiza el agua (máximo FPS).',
+  },
   mtu: {
     category: 'network',
     key: 'DFIntConnectionMTU',
@@ -902,6 +937,14 @@ const FASTFLAG_PRESETS = {
     label: 'MTU de red',
     hint: 'Tamaño de paquete de red (1400 por defecto).',
     default: 1400,
+  },
+  networkOptimization: {
+    category: 'network',
+    key: 'DFIntHttpConnectionLimit',
+    type: 'int',
+    label: 'Límite de conexiones HTTP',
+    hint: 'Más conexiones simultáneas (puede reducir lag).',
+    default: 8,
   },
 };
 
