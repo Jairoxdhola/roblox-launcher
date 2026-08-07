@@ -1173,37 +1173,25 @@
     <section id="panel-settings" class="panel" data-panel="settings">
       <div class="card">
         <div class="settings-row">
-          <div>
-            <h3>Comprobar versión al iniciar</h3>
-            <p class="muted">Revisa automáticamente si Roblox está actualizado cada vez que abres el launcher.</p>
-          </div>
+          <h3>Comprobar versión al iniciar</h3>
           <label class="switch">
             <input type="checkbox" id="autoCheckToggle" checked />
             <span class="slider"></span>
           </label>
         </div>
         <div class="settings-row">
-          <div>
-            <h3>Notificaciones (toasts)</h3>
-            <p class="muted">Muestra avisos al lanzar juegos, actualizar o completar comprobaciones.</p>
-          </div>
+          <h3>Notificaciones</h3>
           <label class="switch">
             <input type="checkbox" id="toastsToggle" checked />
             <span class="slider"></span>
           </label>
         </div>
         <div class="settings-row">
-          <div>
-            <h3>Historial de juegos</h3>
-            <p class="muted">Se guarda localmente en este equipo. Puedes borrarlo cuando quieras.</p>
-          </div>
+          <h3>Historial de juegos</h3>
           <button class="btn btn--danger" id="clearHistoryBtn">Borrar historial</button>
         </div>
         <div class="settings-row">
-          <div>
-            <h3>Multi-instancia (varias cuentas)</h3>
-            <p class="muted">Permite abrir varias ventanas de Roblox al mismo tiempo, cada una con una cuenta distinta. Cada "Jugar" o "Jugar por ID" lanza una instancia nueva.</p>
-          </div>
+          <h3>Multi-instancia</h3>
           <label class="switch">
             <input type="checkbox" id="multiInstanceToggle" />
             <span class="slider"></span>
@@ -1213,21 +1201,14 @@
 
       <div class="card">
         <div class="settings-row">
-          <div>
-            <h3>Actualizaciones de la app</h3>
-            <p class="muted">Revisa si hay una versión nueva de Roblox Launcher. Si hay, se descarga y se instala sola al reiniciar.</p>
-          </div>
+          <h3>Actualizaciones de la app</h3>
           <button class="btn btn--ghost btn--sm" id="checkAppUpdateBtn">&#10227;&nbsp; Comprobar</button>
         </div>
       </div>
 
       <div class="card about-card">
         <h3>Acerca de</h3>
-        <p class="muted" id="aboutText">Roblox Launcher v1.0.0 · Hecho con Electron</p>
-        <p class="muted tiny">
-          Roblox Launcher es una app independiente: no está afiliada a Roblox ni a Roblox Corporation.
-          Lo único que hace es abrir el cliente de Roblox que ya tienes instalado en tu equipo.
-        </p>
+        <p class="muted" id="aboutText">Roblox Launcher v1.0.0</p>
       </div>
     </section>
   </main>
@@ -2452,7 +2433,7 @@
       if (upd.currentVersion) {
         upd.currentVersion().then((v) => {
           if (v && v.version && !IS_DEMO) {
-            $('#aboutText').textContent = `Roblox Launcher v${v.version} · Hecho con Electron`;
+            $('#aboutText').textContent = `Roblox Launcher v${v.version}`;
             $('#footMode').textContent = `v${v.version}`;
             $('#brandVersion').textContent = `v${v.version}`;
           }

@@ -279,12 +279,11 @@ async function playGame(rawPlaceId) {
     await shell.openExternal(webUrl); // el navegador dispara el protocolo de Roblox
     return { ok: false, launched: false, reason: 'not-installed' };
   }
-  // En modo multi-instancia, lanzamos el exe directamente con el protocolo
-  // roblox:// como argumento. Eso crea un proceso NUEVO por cada juego, de modo
-  // que cada ventana puede iniciar sesión con una cuenta distinta. Con el modo
-  // normal usamos el protocolo (siempre abre en la instancia existente).
+  // En modo multi-instancia, lanzamos el exe directamente pasándole la URL del
+  // juego como argumento. Eso crea un proceso NUEVO por cada "Jugar", de modo
+  // que cada ventana puede iniciar sesión con una cuenta distinta.
   if (multiInstanceEnabled) {
-    await spawnPlayer(exe, [`roblox://placeId=${placeId}`]);
+    await spawnPlayer(exe, [`${webUrl}`]);
     return { ok: true, launched: true, placeId, multiInstance: true };
   }
   // RobloxPlayerBeta.exe NO acepta URLs web como argumento. El método fiable
