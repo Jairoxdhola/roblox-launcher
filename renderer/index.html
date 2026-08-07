@@ -2167,21 +2167,21 @@
       performance: [
         { id: 'fpsUnlock', key: 'DFIntTaskSchedulerTargetFps', type: 'int', label: 'Desbloquear FPS', hint: 'Quita el límite de 60 FPS. Valor en FPS.', default: 240 },
         { id: 'vulkan', key: 'FFlagDebugGraphicsPreferVulkan', type: 'bool', label: 'Usar Vulkan', hint: 'Renderizador Vulkan (mejor rendimiento en varias GPUs).' },
-        { id: 'renderTime', key: 'FIntRenderFrameTimePercentage', type: 'int', label: 'Frame time de render', hint: 'Porcentaje del frame dedicado a renderizar (90 por defecto).', default: 90 },
-        { id: 'gpuParticles', key: 'FFlagGraphicsDisableGpuParticles', type: 'bool', label: 'Desactivar partículas GPU', hint: 'Reduce carga de partículas pesadas.' },
-        { id: 'vsync', key: 'FFlagDebugGraphicsDisableVSync', type: 'bool', label: 'Desactivar VSync', hint: 'Quita el límite de refresco (más FPS, puede dar tearing).' },
-        { id: 'ribbons', key: 'FFlagDebugDisableRibbon', type: 'bool', label: 'Desactivar cintas de partículas', hint: 'Quita estelas y efectos de partículas (gran ganancia de FPS).' },
-        { id: 'instancing', key: 'FFlagDebugDisableInstancing', type: 'bool', label: 'Desactivar instancing', hint: 'Reduce el renderizado de objetos repetidos.' },
+        { id: 'showFps', key: 'FFlagDebugDisplayFPS', type: 'bool', label: 'Mostrar FPS en pantalla', hint: 'Muestra un contador de FPS dentro de Roblox.' },
+        { id: 'perfBias', key: 'DFIntGraphicsOptimizationModePerformanceBiasPercent', type: 'int', label: 'Sesgo de rendimiento', hint: 'Más alto = prioriza FPS sobre calidad (100 = todo rendimiento).', default: 100 },
+        { id: 'perfScale', key: 'DFIntGraphicsOptimizationModePerformanceScalePercent', type: 'int', label: 'Escala de rendimiento', hint: 'Ajusta la resolución interna según el rendimiento.', default: 100 },
+        { id: 'frameRateTarget', key: 'DFIntGraphicsOptimizationModeFRMFrameRateTarget', type: 'int', label: 'Objetivo FPS (optimizador)', hint: 'El optimizador apunta a este FPS.', default: 240 },
+        { id: 'minFrameTime', key: 'DFIntGraphicsOptimizationModeMinFrameTimeTargetMs', type: 'int', label: 'Frame time mínimo (ms)', hint: 'Bajo = más FPS.', default: 4 },
+        { id: 'maxFrameTime', key: 'DFIntGraphicsOptimizationModeMaxFrameTimeTargetMs', type: 'int', label: 'Frame time máximo (ms)', hint: 'Tope antes de bajar calidad.', default: 16 },
+        { id: 'physFps', key: 'DFIntPhysicsStepLimitMaxFPS', type: 'int', label: 'Límite FPS de física', hint: 'Desacopla la física del FPS.', default: 240 },
+        { id: 'physSteps', key: 'DFIntPhysicsStepsPerSecond', type: 'int', label: 'Pasos de física por segundo', hint: 'Menos pasos = menos CPU (60 mínimo).', default: 60 },
       ],
       fx: [
-        { id: 'postFx', key: 'FFlagDisablePostFx', type: 'bool', label: 'Desactivar PostFX', hint: 'Quita blur y bloom para más FPS.' },
-        { id: 'shadows', key: 'FFlagDebugGraphicsDisableShadowMap', type: 'bool', label: 'Desactivar sombras', hint: 'Desactiva el mapa de sombras.' },
-        { id: 'terrain', key: 'FFlagDisableTerrain', type: 'bool', label: 'Desactivar terreno', hint: 'No renderiza el terreno (máximo FPS, se ve feo).' },
-        { id: 'water', key: 'FFlagDisableWater', type: 'bool', label: 'Desactivar agua', hint: 'No renderiza el agua (máximo FPS).' },
+        { id: 'lod', key: 'DFIntSlimForceLOD', type: 'int', label: 'Forzar LOD bajo (modo cartón)', hint: '3 = calidad mínima, máximo FPS.', default: 3 },
+        { id: 'ssao', key: 'FFlagSSAO', type: 'bool', label: 'Desactivar SSAO', hint: 'Apagado = sin oclusión ambiental (más FPS).' },
       ],
       network: [
-        { id: 'mtu', key: 'DFIntConnectionMTU', type: 'int', label: 'MTU de red', hint: 'Tamaño de paquete de red (1400 por defecto).', default: 1400 },
-        { id: 'networkOptimization', key: 'DFIntHttpConnectionLimit', type: 'int', label: 'Límite de conexiones HTTP', hint: 'Más conexiones simultáneas (puede reducir lag).', default: 8 },
+        { id: 'mtu', key: 'DFIntConnectionMTUSize', type: 'int', label: 'MTU de red', hint: 'Tamaño de paquete de red (1400 por defecto).', default: 1400 },
       ],
     };
 
