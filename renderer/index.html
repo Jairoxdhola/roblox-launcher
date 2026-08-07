@@ -1132,10 +1132,7 @@
       <div class="card">
         <div class="dg-head-row">
           <div>
-            <h2>FastFlags · optimización</h2>
-            <p class="muted">Flags que lee Roblox al arrancar para mejorar rendimiento, gráficos y red.
-              Se guardan en la carpeta de tu versión activa (<span class="mono">ClientAppSettings.json</span>).
-              <strong>Reinicia Roblox para que surtan efecto.</strong></p>
+            <h2>FastFlags</h2>
           </div>
         </div>
 
@@ -1160,7 +1157,6 @@
       <div class="card dg-head-row" style="margin-top:22px;">
         <div>
           <h3>Acciones</h3>
-          <p class="muted" id="ffActionsHint">Aplicá los cambios o limpiá todo.</p>
         </div>
         <div class="dg-head-actions">
           <button id="ffClearBtn" class="btn btn--danger btn--sm">Limpiar todos</button>
@@ -2195,7 +2191,7 @@
 
       const info = document.createElement('div');
       info.className = 'ff-info';
-      info.innerHTML = `<div class="ff-title">${preset.label}</div><div class="ff-hint">${preset.hint}</div>`;
+      info.innerHTML = `<div class="ff-title">${preset.label}</div>`;
 
       let control;
       if (preset.type === 'bool') {
