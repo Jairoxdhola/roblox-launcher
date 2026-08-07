@@ -1199,6 +1199,16 @@
           </div>
           <button class="btn btn--danger" id="clearHistoryBtn">Borrar historial</button>
         </div>
+        <div class="settings-row">
+          <div>
+            <h3>Multi-instancia (varias cuentas)</h3>
+            <p class="muted">Permite abrir varias ventanas de Roblox al mismo tiempo, cada una con una cuenta distinta. Cada "Jugar" o "Jugar por ID" lanza una instancia nueva.</p>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="multiInstanceToggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
 
       <div class="card">
@@ -1302,6 +1312,9 @@
       async openVersionsFolder() { return true; },
       async openRobloxFolder() { return true; },
       async isRobloxRunning() { return true; },
+      _demoMultiInstance: false,
+      async getMultiInstance() { return { ok: true, multiInstance: this._demoMultiInstance, _demo: true }; },
+      async setMultiInstance(enabled) { this._demoMultiInstance = !!enabled; return { ok: true, multiInstance: !!enabled, _demo: true }; },
       async closeRoblox() {
         await sleep(600);
         return { ok: true, wasRunning: true, _demo: true };
@@ -2319,6 +2332,24 @@
         settings.toasts = e.target.checked;
         saveSettings();
         if (settings.toasts) toast('info', 'Notificaciones activadas.');
+      });
+
+      // Multi-instancia: guarda la preferencia en el proceso principal.
+      const miToggle = $('#multiInstanceToggle');
+      const syncMultiInstance = async () => {
+        const res = await safe(() => API.getMultiInstance());
+        if (res && res.ok) miToggle.checked = !!res.multiInstance;
+      };
+      syncMultiInstance();
+      miToggle.addEventListener('change', async (e) => {
+        const on = e.target.checked;
+        const res = await safe(() => API.setMultiInstance(on));
+        if (res && res.ok) {
+          toast('info', on ? 'Multi-instancia activada: cada "Jugar" abre una instancia nueva.' : 'Multi-instancia desactivada.');
+        } else {
+          miToggle.checked = !on;
+          toast('error', 'No se pudo cambiar el modo multi-instancia.');
+        }
       });
     }
 
