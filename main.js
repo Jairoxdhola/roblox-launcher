@@ -243,10 +243,12 @@ async function launchClient() {
     await shell.openExternal('https://www.roblox.com/download');
     return { ok: false, launched: false, reason: 'not-installed' };
   }
-  // En modo multi-instancia, cada apertura lanza un proceso NUEVO del cliente
-  // (así se pueden usar cuentas distintas). Cada spawn del exe crea su propio
-  // proceso de Roblox, así que con el toggle activado se pueden abrir varios.
-  await spawnPlayer(exe, []);
+  // En modo multi-instancia, cada apertura lanza un proceso NUEVO del cliente.
+  // IMPORTANTE: RobloxPlayerBeta.exe sin argumentos reutiliza la instancia ya
+  // abierta (single-instance). Pasarle una URL como argumento fuerza una
+  // ventana/proceso nuevo, que es lo que permite cuentas distintas.
+  const args = multiInstanceEnabled ? ['https://www.roblox.com/home'] : [];
+  await spawnPlayer(exe, args);
   return { ok: true, launched: true, multiInstance: multiInstanceEnabled };
 }
 
