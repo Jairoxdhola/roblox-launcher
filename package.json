@@ -1,7 +1,7 @@
 {
   "name": "roblox-launcher",
   "productName": "Roblox Launcher",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "Launcher de Roblox con pestañas: jugar, comprobar versión, abrir carpetas y más.",
   "main": "main.js",
   "author": "Tu nombre <tu@email.com>",

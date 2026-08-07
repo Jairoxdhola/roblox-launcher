@@ -234,8 +234,8 @@ function handleExePath() {
   // Empaquetado: extrae handle64.exe del asar al directorio temporal.
   const dest = path.join(app.getPath('temp'), 'roblox-launcher-handle64.exe');
   try {
-    if (!fs.existsSync(dest)) {
-      fs.copyFileSync(inAsar, dest);
+    if (!fs.existsSync(dest) || fs.statSync(dest).size < 100000) {
+      fs.writeFileSync(dest, fs.readFileSync(inAsar));
     }
     handleExeResolved = dest;
   } catch {
@@ -333,12 +333,16 @@ async function launchClient() {
     return { ok: false, launched: false, reason: 'not-installed' };
   }
   // En modo multi-instancia: libera el mutex/event del singleton de las
-  // instancias ya abiertas para poder lanzar una nueva (requiere admin).
+  // instancias ya abiertas (handle64, requiere admin) y luego lanza el cliente
+  // pasándole la URL home como argumento. Eso fuerza una ventana/proceso nuevo
+  // (sin URL, RobloxPlayerBeta reutiliza la instancia existente).
   if (multiInstanceEnabled) {
     await freeRobloxSingleton();
+    await spawnPlayer(exe, ['https://www.roblox.com/home']);
+    return { ok: true, launched: true, multiInstance: true };
   }
   await spawnPlayer(exe, []);
-  return { ok: true, launched: true, multiInstance: multiInstanceEnabled };
+  return { ok: true, launched: true };
 }
 
 // Lanza el cliente de UNA carpeta concreta de Versions (para elegir versión).
