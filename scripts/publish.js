@@ -33,6 +33,44 @@ if (!TOKEN) {
   process.exit(1);
 }
 
+// Commit local actual (el de `npm version patch`). GitHub crea el tag al vuelo
+// cuando la release no existe todavía, y lo apunta a la punta de main remoto
+// (que puede estar atrasado). Para que el tag apunte SIEMPRE al código que se
+// está publicando, lo forzamos al HEAD local aquí.
+function currentCommit() {
+  try {
+    return require('child_process')
+      .execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' })
+      .trim();
+  } catch {
+    return null;
+  }
+}
+
+async function updateTagToCurrentCommit() {
+  const sha = currentCommit();
+  if (!sha) {
+    console.warn('[publish] No se pudo leer el commit local (git rev-parse HEAD); el tag queda como lo ponga GitHub.');
+    return;
+  }
+  try {
+    const existing = await request('GET', API, `/repos/${OWNER}/${REPO}/git/refs/tags/${TAG}`);
+    const body = { sha, force: true };
+    if (existing.status === 200) {
+      await request('PATCH', API, `/repos/${OWNER}/${REPO}/git/refs/tags/${TAG}`, body);
+    } else {
+      await request('POST', API, `/repos/${OWNER}/${REPO}/git/refs`, {
+        ref: `refs/tags/${TAG}`,
+        sha,
+        force: true,
+      });
+    }
+    console.log(`[publish] Tag ${TAG} → ${sha.slice(0, 7)}`);
+  } catch (e) {
+    console.warn('[publish] Aviso: no se pudo ajustar el tag remoto:', e.message);
+  }
+}
+
 const API = 'api.github.com';
 const UPLOADS = 'uploads.github.com';
 
@@ -129,6 +167,7 @@ async function uploadAsset(release, name) {
 (async () => {
   try {
     console.log(`[publish] Roblox Launcher ${VERSION} → ${OWNER}/${REPO}`);
+    await updateTagToCurrentCommit();
     const release = await ensureRelease();
     await uploadAsset(release, YML);
     await uploadAsset(release, BLOCKMAP);
