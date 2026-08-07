@@ -189,30 +189,6 @@ async function checkVersion() {
 
 // ---- Lanzamiento -------------------------------------------------------------
 
-// Preferencias que el main necesita conocer (persistidas en userData/settings.json).
-let multiInstanceEnabled = false;
-
-function loadAppSettings() {
-  try {
-    const data = JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'settings.json'), 'utf8'));
-    multiInstanceEnabled = !!data.multiInstance;
-  } catch { /* valores por defecto */ }
-}
-
-async function setMultiInstance(enabled) {
-  multiInstanceEnabled = !!enabled;
-  try {
-    const file = path.join(app.getPath('userData'), 'settings.json');
-    let data = {};
-    try { data = JSON.parse(fs.readFileSync(file, 'utf8')); } catch { /* no existe aún */ }
-    data.multiInstance = multiInstanceEnabled;
-    await fs.promises.writeFile(file, JSON.stringify(data, null, 2));
-  } catch (e) {
-    return { ok: false, error: e.message };
-  }
-  return { ok: true, multiInstance: multiInstanceEnabled };
-}
-
 async function resolvePlayerExe() {
   const info = await getInstalledVersion();
   return info ? info.exe : null;
@@ -243,13 +219,11 @@ async function launchClient() {
     await shell.openExternal('https://www.roblox.com/download');
     return { ok: false, launched: false, reason: 'not-installed' };
   }
-  // En modo multi-instancia, cada apertura lanza un proceso NUEVO del cliente.
-  // IMPORTANTE: RobloxPlayerBeta.exe sin argumentos reutiliza la instancia ya
-  // abierta (single-instance). Pasarle una URL como argumento fuerza una
-  // ventana/proceso nuevo, que es lo que permite cuentas distintas.
-  const args = multiInstanceEnabled ? ['https://www.roblox.com/home'] : [];
-  await spawnPlayer(exe, args);
-  return { ok: true, launched: true, multiInstance: multiInstanceEnabled };
+  // Nota: el cliente de Roblox NO permite varias instancias abiertas a la vez
+  // (al abrir una segunda, la primera se cierra). Por eso siempre se lanza el
+  // exe normal: no existe forma fiable de forzar multi-instancia.
+  await spawnPlayer(exe, []);
+  return { ok: true, launched: true };
 }
 
 // Lanza el cliente de UNA carpeta concreta de Versions (para elegir versión).
@@ -281,16 +255,10 @@ async function playGame(rawPlaceId) {
     await shell.openExternal(webUrl); // el navegador dispara el protocolo de Roblox
     return { ok: false, launched: false, reason: 'not-installed' };
   }
-  // En modo multi-instancia, lanzamos el exe directamente pasándole la URL del
-  // juego como argumento. Eso crea un proceso NUEVO por cada "Jugar", de modo
-  // que cada ventana puede iniciar sesión con una cuenta distinta.
-  if (multiInstanceEnabled) {
-    await spawnPlayer(exe, [`${webUrl}`]);
-    return { ok: true, launched: true, placeId, multiInstance: true };
-  }
   // RobloxPlayerBeta.exe NO acepta URLs web como argumento. El método fiable
   // es el protocolo roblox://, que lanza el juego directamente en el cliente
-  // (requiere sesión iniciada en el cliente).
+  // (requiere sesión iniciada en el cliente). El cliente no permite varias
+  // instancias a la vez, así que esto siempre abre en la instancia existente.
   await shell.openExternal(`roblox://placeId=${placeId}`);
   return { ok: true, launched: true, placeId };
 }
@@ -1207,8 +1175,6 @@ ipcMain.handle('window:toggle-maximize', () => {
 });
 ipcMain.handle('window:close', () => { if (mainWindow) mainWindow.close(); });
 ipcMain.handle('window:is-maximized', () => (mainWindow ? mainWindow.isMaximized() : false));
-ipcMain.handle('multi-instance:get', () => ({ ok: true, multiInstance: multiInstanceEnabled }));
-ipcMain.handle('multi-instance:set', (_e, enabled) => setMultiInstance(enabled));
 ipcMain.handle('close:roblox', () => closeRoblox());
 ipcMain.handle('is:roblox-running', () => isProcessRunning('RobloxPlayerBeta.exe'));
 ipcMain.handle('update:roblox', () => updateRoblox());
@@ -1410,7 +1376,6 @@ if (!gotLock) {
   app.whenReady().then(() => {
     // En modo CLI no se abre ventana (solo se instala/activa/protege/actualiza).
     if (INSTALL_CLI || ACTIVATE_CLI || PROTECT_CLI || UPDATE_CLI) return;
-    loadAppSettings();
     app.setAppUserModelId(APP_ID);
     // Sin barra de menú (File/Edit/…) en la ventana.
     Menu.setApplicationMenu(null);

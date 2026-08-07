@@ -18,8 +18,6 @@ contextBridge.exposeInMainWorld('robloxAPI', {
   openRobloxFolder: () => ipcRenderer.invoke('open:roblox'),
   closeRoblox: () => ipcRenderer.invoke('close:roblox'),
   isRobloxRunning: () => ipcRenderer.invoke('is:roblox-running'),
-  getMultiInstance: () => ipcRenderer.invoke('multi-instance:get'),
-  setMultiInstance: (enabled) => ipcRenderer.invoke('multi-instance:set', enabled),
   updateRoblox: () => ipcRenderer.invoke('update:roblox'),
   openExternal: (url) => ipcRenderer.invoke('open:external', url),
   // Pestaña Downgrade: respaldos, versiones instaladas, importar y protección
