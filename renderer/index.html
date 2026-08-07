@@ -733,12 +733,17 @@
     }
 
     /* ======= Banner de actualización de la app ======= */
+    /* El banner se superpone a la barra superior, que es zona de arrastre
+       de la ventana (-webkit-app-region: drag). Hay que anular eso aquí si
+       no, al pulsar el botón Windows arrastra la ventana en vez de hacer
+       clic ("la app se mueve como si fuera la barra"). */
     .update-banner {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       z-index: 95;
+      -webkit-app-region: no-drag;
       background: linear-gradient(90deg, rgba(226, 35, 26, 0.16), rgba(61, 139, 255, 0.12));
       border-bottom: 1px solid rgba(255, 255, 255, 0.14);
       backdrop-filter: blur(8px);
@@ -781,6 +786,7 @@
       left: 0;
       right: 0;
       z-index: 90;
+      -webkit-app-region: no-drag;
       padding: 9px 16px;
       text-align: center;
       font-size: 12.5px;
